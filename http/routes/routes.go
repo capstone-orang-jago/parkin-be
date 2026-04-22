@@ -8,9 +8,22 @@ import (
 	"github.com/capstone-orang-jago/parkin-be/config"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
 	// middleware "github.com/rumahkueku-azzahra-dev/terumpit-coklat/http/middlewares"
+
+	_ "github.com/capstone-orang-jago/parkin-be/docs"
 )
 
+// HealthCheck godoc
+// @Summary Check server status
+// @Description get server health
+// @Tags health
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Router /health [get]
 func health(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
@@ -22,7 +35,7 @@ func RegisterRoutes(application app.App) http.Handler {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     config.AppConfig.AllowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Content-Type", "Authorization", "application/json"},
+		AllowHeaders:     []string{"Origin", "Authorization", "application/json"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
@@ -30,10 +43,21 @@ func RegisterRoutes(application app.App) http.Handler {
 	// Serve static files from uploads directory
 	// router.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	v1 := router.Group("/api/v1")
 
 	// PUBLIC ROUTES
 	v1.GET("/health", health)
+
+	user := v1.Group("/users")
+	{
+		user.GET("/", application.UserHandler.GetAllUsers)
+		user.GET("/:id", application.UserHandler.GetUserByID)
+		user.POST("/", application.UserHandler.CreateUser)
+		user.PUT("/:id", application.UserHandler.UpdateUser)
+		user.DELETE("/:id", application.UserHandler.DeleteUser)
+	}
 
 	return router
 }

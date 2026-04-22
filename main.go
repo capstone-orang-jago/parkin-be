@@ -1,3 +1,9 @@
+// @title Parkin API
+// @version 1.0
+// @description This is Parkin backend API
+// @host localhost:8080
+// @BasePath /api/v1
+
 package main
 
 import (

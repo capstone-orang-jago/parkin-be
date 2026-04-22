@@ -10,10 +10,10 @@ CREATE TYPE topup_status AS ENUM ('pending', 'sukses', 'gagal', 'expired');
 
 CREATE TABLE users (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    nama_lengkap   VARCHAR(100) NOT NULL,
-    no_telepon     VARCHAR(20)  NOT NULL UNIQUE,
+    name    VARCHAR(100) NOT NULL,
+    telephone     VARCHAR(20)  NOT NULL UNIQUE,
     email          VARCHAR(100),
-    password_hash  VARCHAR(255) NOT NULL,
+    password  VARCHAR(255) NOT NULL,
     role           user_role    NOT NULL DEFAULT 'pengguna',
     saldo          BIGINT       NOT NULL DEFAULT 0 CHECK (saldo >= 0),
     is_verified    BOOLEAN      NOT NULL DEFAULT FALSE,

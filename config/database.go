@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"log"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-
 	_ "github.com/lib/pq"
 )
 
-var DB *gorm.DB
+var DB *sql.DB
 
 func InitDB() {
 	dsn := fmt.Sprintf(
@@ -23,9 +20,12 @@ func InitDB() {
 		AppConfig.DBPort,
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
+	}
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Failed to connect database: %v", err)
 	}
 
 	DB = db
@@ -42,5 +42,10 @@ func NewDB() (*sql.DB, error) {
 		AppConfig.DBPort,
 	)
 
-	return sql.Open("postgres", dsn)
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
+	}
+
+	return db, db.Ping()
 }

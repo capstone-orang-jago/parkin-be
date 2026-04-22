@@ -43,6 +43,17 @@ func (usecase *userUsecase) GetUserByID(ctx context.Context, id string) (user *d
 	return user, nil
 }
 
+func (usecase *userUsecase) GetUserByEmail(ctx context.Context, email string) (user *domain.User, err error) {
+	user, err = usecase.userRepo.GetUserByEmail(ctx, email)
+
+	if err != nil {
+		logrus.WithError(err).Error("usecase.GetUserByEmail: failed to get user by email")
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (usecase *userUsecase) CreateUser(ctx context.Context, req dto.UserRequestDTO) (res *domain.User, err error) {
 	if req.Name == "" {
 		return nil, errors.New("name are required")

@@ -1,11 +1,43 @@
 basePath: /api/v1
 definitions:
+  domain.Auth:
+    properties:
+      expiresAt:
+        type: string
+      id:
+        type: string
+      token:
+        type: string
+      userID:
+        type: string
+    type: object
   domain.HttpResponse:
     properties:
       code:
         type: integer
       data: {}
       message:
+        type: string
+    type: object
+  dto.LoginRequestDTO:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.LoginResponseDTO:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+      user_id:
+        type: string
+    type: object
+  dto.RefreshTokenRequestDTO:
+    properties:
+      refresh_token:
         type: string
     type: object
   dto.UserRequestDTO:
@@ -49,6 +81,136 @@ info:
   title: Parkin API
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LoginResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      summary: Login a user
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Refresh Token Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RefreshTokenRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Logout a user
+      tags:
+      - auth
+  /auth/refresh-token:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Refresh Token Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RefreshTokenRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Auth'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      summary: Refresh access token
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.UserResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      summary: Register a new user
+      tags:
+      - auth
   /health:
     get:
       consumes:
@@ -85,6 +247,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
       summary: Get all users
       tags:
       - users
@@ -113,6 +277,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
       summary: Create a new user
       tags:
       - users
@@ -137,6 +303,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
       summary: Delete user
       tags:
       - users
@@ -162,6 +330,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
       summary: Get user by ID
       tags:
       - users
@@ -195,7 +365,14 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
       summary: Update user
       tags:
       - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

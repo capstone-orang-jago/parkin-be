@@ -4,22 +4,27 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-func DecodeJSON(r *http.Request, v interface{}) error {
-	if r.Body == nil {
+func DecodeJSON(c *gin.Context, v interface{}) error {
+	if c.Request.Body == nil {
 		return errors.New("request body is empty")
 	}
-	defer r.Body.Close()
 
-	decoder := json.NewDecoder(r.Body)
+	decoder := json.NewDecoder(c.Request.Body)
+	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(v); err != nil {
 		if err == io.EOF {
 			return errors.New("request body is empty")
 		}
 		return err
+	}
+
+	if decoder.More() {
+		return errors.New("request body must contain only one JSON object")
 	}
 
 	return nil

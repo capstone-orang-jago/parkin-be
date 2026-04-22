@@ -6,6 +6,7 @@ import (
 
 	"github.com/capstone-orang-jago/parkin-be/app"
 	"github.com/capstone-orang-jago/parkin-be/config"
+	"github.com/capstone-orang-jago/parkin-be/http/middlewares"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -51,12 +52,21 @@ func RegisterRoutes(application app.App) http.Handler {
 	v1.GET("/health", health)
 
 	user := v1.Group("/users")
+	user.Use(middlewares.AuthMiddleware())
 	{
 		user.GET("/", application.UserHandler.GetAllUsers)
 		user.GET("/:id", application.UserHandler.GetUserByID)
 		user.POST("/", application.UserHandler.CreateUser)
 		user.PUT("/:id", application.UserHandler.UpdateUser)
 		user.DELETE("/:id", application.UserHandler.DeleteUser)
+	}
+
+	auth := v1.Group("/auth")
+	{
+		auth.POST("/register", application.AuthHandler.Register)
+		auth.POST("/login", application.AuthHandler.Login)
+		auth.POST("/refresh-token", application.AuthHandler.RefreshToken)
+		auth.POST("/logout", middlewares.AuthMiddleware(), application.AuthHandler.Logout)
 	}
 
 	return router

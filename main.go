@@ -3,6 +3,9 @@
 // @description This is Parkin backend API
 // @host localhost:8080
 // @BasePath /api/v1
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 
 package main
 

@@ -6,7 +6,7 @@ definitions:
         type: string
       id:
         type: string
-      token:
+      refreshTokenHash:
         type: string
       userID:
         type: string

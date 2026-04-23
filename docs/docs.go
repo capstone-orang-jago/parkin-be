@@ -482,7 +482,7 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "token": {
+                "refreshTokenHash": {
                     "type": "string"
                 },
                 "userID": {

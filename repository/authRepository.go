@@ -17,14 +17,14 @@ func NewAuthRepository(db *sql.DB) domain.AuthRepository {
 
 func (repo *authRepository) CreateRefreshToken(ctx context.Context, auth *domain.Auth) error {
 	query := "INSERT INTO refresh_tokens (id, user_id, token, expires_at) VALUES ($1, $2, $3, $4)"
-	_, err := repo.db.ExecContext(ctx, query, auth.ID, auth.UserID, auth.Token, auth.ExpiresAt)
+	_, err := repo.db.ExecContext(ctx, query, auth.ID, auth.UserID, auth.RefreshTokenHash, auth.ExpiresAt)
 	return err
 }
 
 func (repo *authRepository) GetRefreshToken(ctx context.Context, token string) (*domain.Auth, error) {
 	query := "SELECT id, user_id, token, expires_at FROM refresh_tokens WHERE token = $1"
 	auth := &domain.Auth{}
-	err := repo.db.QueryRowContext(ctx, query, token).Scan(&auth.ID, &auth.UserID, &auth.Token, &auth.ExpiresAt)
+	err := repo.db.QueryRowContext(ctx, query, token).Scan(&auth.ID, &auth.UserID, &auth.RefreshTokenHash, &auth.ExpiresAt)
 	if err != nil {
 		return nil, err
 	}

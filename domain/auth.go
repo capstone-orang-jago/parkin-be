@@ -9,10 +9,10 @@ import (
 )
 
 type Auth struct {
-	ID        string
-	UserID    string
-	Token     string
-	ExpiresAt time.Time
+	ID               string
+	UserID           string
+	RefreshTokenHash string
+	ExpiresAt        time.Time
 }
 
 type (
@@ -24,8 +24,8 @@ type (
 
 	AuthUsecase interface {
 		Login(ctx context.Context, req dto.LoginRequestDTO) (res *dto.LoginResponseDTO, err error)
-		RefreshToken(ctx context.Context, req dto.RefreshTokenRequestDTO) (res *Auth, err error)
-		Logout(ctx context.Context, token string) error
+		RefreshToken(ctx context.Context, req dto.RefreshTokenRequestDTO) (res *dto.RefreshTokenResponseDTO, err error)
+		Logout(ctx context.Context, userId, token string) error
 	}
 
 	AuthHandler interface {

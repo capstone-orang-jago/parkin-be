@@ -48,6 +48,7 @@ func (usecase *authUsecase) Login(ctx context.Context, req dto.LoginRequestDTO) 
 		logrus.WithError(err).Error("usecase.Login: failed to generate refresh token")
 		return nil, errors.New("failed to generate refresh token")
 	}
+	hashedToken := helpers.HashToken(refreshToken)
 
 	accessToken, err := helpers.GenerateAccessToken(user.ID, config.AppConfig.JWTSecret, time.Hour*2)
 	if err != nil {
@@ -58,10 +59,10 @@ func (usecase *authUsecase) Login(ctx context.Context, req dto.LoginRequestDTO) 
 	tokenId := uuid.NewString()
 
 	auth := &domain.Auth{
-		ID:        tokenId,
-		UserID:    user.ID,
-		Token:     refreshToken,
-		ExpiresAt: time.Now().Add(time.Hour * 24 * 30),
+		ID:               tokenId,
+		UserID:           user.ID,
+		RefreshTokenHash: hashedToken,
+		ExpiresAt:        time.Now().Add(time.Hour * 24 * 30),
 	}
 
 	if err = usecase.authRepo.CreateRefreshToken(ctx, auth); err != nil {
@@ -78,46 +79,82 @@ func (usecase *authUsecase) Login(ctx context.Context, req dto.LoginRequestDTO) 
 	return res, nil
 }
 
-func (usecase *authUsecase) RefreshToken(ctx context.Context, req dto.RefreshTokenRequestDTO) (*domain.Auth, error) {
+func (usecase *authUsecase) RefreshToken(ctx context.Context, req dto.RefreshTokenRequestDTO) (*dto.RefreshTokenResponseDTO, error) {
 	if req.RefreshToken == "" {
 		return nil, errors.New("refresh token are required")
 	}
 
-	auth, err := usecase.authRepo.GetRefreshToken(ctx, req.RefreshToken)
+	oldHashedToken := helpers.HashToken(req.RefreshToken)
+	auth, err := usecase.authRepo.GetRefreshToken(ctx, oldHashedToken)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.RefreshToken: invalid refresh token")
 		return nil, errors.New("invalid refresh token")
 	}
 
 	if time.Now().After(auth.ExpiresAt) {
+		logrus.WithError(err).Error("usecase.RefreshToken: refresh token expired")
 		return nil, errors.New("refresh token expired")
 	}
 
-	accessToken, err := helpers.GenerateAccessToken(
+	newRefreshToken, err := helpers.GenerateRefreshToken()
+	if err != nil {
+		logrus.WithError(err).Error("usecase.RefreshToken: failed to generate new refresh token")
+		return nil, errors.New("failed to generate new refresh token")
+	}
+
+	newAccessToken, err := helpers.GenerateAccessToken(
 		auth.UserID,
 		config.AppConfig.JWTSecret,
 		time.Hour*2,
 	)
 	if err != nil {
-		return nil, err
+		logrus.WithError(err).Error("usecase.RefreshToken: failed to generate new access token")
+		return nil, errors.New("failed to generate new access token")
 	}
 
-	data := &domain.Auth{
-		ID:        auth.ID,
-		UserID:    auth.UserID,
-		Token:     accessToken,
-		ExpiresAt: time.Now().Add(time.Hour * 2),
+	newHashedToken := helpers.HashToken(newRefreshToken)
+	newAuth := &domain.Auth{
+		ID:               uuid.NewString(),
+		UserID:           auth.UserID,
+		RefreshTokenHash: newHashedToken,
+		ExpiresAt:        time.Now().Add(time.Hour * 24 * 30),
+	}
+
+	err = usecase.authRepo.CreateRefreshToken(ctx, newAuth)
+	if err != nil {
+		return nil, errors.New("failed to save new refresh token to database")
+	}
+
+	err = usecase.authRepo.DeleteRefreshToken(ctx, oldHashedToken)
+	if err != nil {
+		return nil, errors.New("failed to delete old refresh token from database")
+	}
+
+	data := &dto.RefreshTokenResponseDTO{
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshToken,
 	}
 
 	return data, nil
 }
 
-func (usecase *authUsecase) Logout(ctx context.Context, token string) error {
+func (usecase *authUsecase) Logout(ctx context.Context, userId, token string) error {
 	if token == "" {
 		return errors.New("refresh token are required")
 	}
 
-	err := usecase.authRepo.DeleteRefreshToken(ctx, token)
+	hashedToken := helpers.HashToken(token)
+
+	auth, err := usecase.authRepo.GetRefreshToken(ctx, hashedToken)
+	if err != nil {
+		return err
+	}
+
+	if auth.UserID != userId {
+		return errors.New("unauthorized")
+	}
+
+	err = usecase.authRepo.DeleteRefreshToken(ctx, hashedToken)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.Logout: failed to delete refresh token from database")
 		return errors.New("failed to delete refresh token from database")

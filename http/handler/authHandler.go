@@ -191,7 +191,9 @@ func (handler *authHandler) Logout(c *gin.Context) {
 		return
 	}
 
-	err := handler.authUsecase.Logout(c.Request.Context(), req.RefreshToken)
+	userId := c.GetString("user_id")
+
+	err := handler.authUsecase.Logout(c.Request.Context(), userId, req.RefreshToken)
 	if err != nil {
 		logrus.WithError(err).Error("handler.Logout: failed to logout")
 		helpers.Response(c, domain.HttpResponse{

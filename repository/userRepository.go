@@ -23,7 +23,10 @@ func (repo *userRepository) GetAllUsers(ctx context.Context) (users []*domain.Us
 	query := "SELECT id, name, telephone, email, password, role, saldo, is_verified, created_at, updated_at FROM users"
 
 	rows, err := repo.db.QueryContext(ctx, query)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		logrus.WithError(err).Info("repo.GetUsers: no users found")
+		return nil, nil
+	} else if err != nil {
 		logrus.WithError(err).Error("repo.GetUsers: failed to get users")
 		return nil, err
 	}
@@ -51,7 +54,10 @@ func (repo *userRepository) GetUserByID(ctx context.Context, id string) (user *d
 	user = &domain.User{}
 
 	err = repo.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Name, &user.Telephone, &user.Email, &user.Password, &user.Role, &user.Saldo, &user.IsVerified, &user.CreatedAt, &user.UpdatedAt)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		logrus.WithError(err).Info("repo.GetUserByID: no user found for ID")
+		return nil, nil
+	} else if err != nil {
 		logrus.WithError(err).Error("repo.GetUserByID: failed to get user by ID")
 		return nil, err
 	}
@@ -69,7 +75,10 @@ func (repo *userRepository) GetUserByEmail(ctx context.Context, email string) (u
 	user = &domain.User{}
 
 	err = repo.db.QueryRowContext(ctx, query, email).Scan(&user.ID, &user.Name, &user.Telephone, &user.Email, &user.Password, &user.Role, &user.Saldo, &user.IsVerified, &user.CreatedAt, &user.UpdatedAt)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		logrus.WithError(err).Info("repo.GetUserByEmail: no user found for email")
+		return nil, nil
+	} else if err != nil {
 		logrus.WithError(err).Error("repo.GetUserByEmail: failed to get user by email")
 		return nil, err
 	}

@@ -9,7 +9,6 @@ import (
 	"github.com/capstone-orang-jago/parkin-be/domain"
 	"github.com/capstone-orang-jago/parkin-be/dto"
 	"github.com/capstone-orang-jago/parkin-be/helpers"
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -56,10 +55,7 @@ func (usecase *authUsecase) Login(ctx context.Context, req dto.LoginRequestDTO) 
 		return nil, errors.New("failed to generate access token")
 	}
 
-	tokenId := uuid.NewString()
-
 	auth := &domain.Auth{
-		ID:               tokenId,
 		UserID:           user.ID,
 		RefreshTokenHash: hashedToken,
 		ExpiresAt:        time.Now().Add(time.Hour * 24 * 30),
@@ -122,7 +118,6 @@ func (usecase *authUsecase) RefreshToken(ctx context.Context, req dto.RefreshTok
 
 	newHashedToken := helpers.HashToken(newRefreshToken)
 	newAuth := &domain.Auth{
-		ID:               uuid.NewString(),
 		UserID:           auth.UserID,
 		RefreshTokenHash: newHashedToken,
 		ExpiresAt:        time.Now().Add(time.Hour * 24 * 30),

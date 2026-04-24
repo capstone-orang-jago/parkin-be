@@ -16,8 +16,8 @@ func NewAuthRepository(db *sql.DB) domain.AuthRepository {
 }
 
 func (repo *authRepository) CreateRefreshToken(ctx context.Context, auth *domain.Auth) error {
-	query := "INSERT INTO refresh_tokens (id, user_id, token, expires_at) VALUES ($1, $2, $3, $4)"
-	_, err := repo.db.ExecContext(ctx, query, auth.ID, auth.UserID, auth.RefreshTokenHash, auth.ExpiresAt)
+	query := "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)"
+	_, err := repo.db.ExecContext(ctx, query, auth.UserID, auth.RefreshTokenHash, auth.ExpiresAt)
 	return err
 }
 

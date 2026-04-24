@@ -80,10 +80,10 @@ func (repo *userRepository) GetUserByEmail(ctx context.Context, email string) (u
 func (repo *userRepository) CreateUser(ctx context.Context, users *domain.User) (err error) {
 	query := `
 			INSERT INTO users 
-			(id, name, telephone, email, password, role, saldo, is_verified, created_at, updated_at) 
-			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+			(name, telephone, email, password, role, saldo, is_verified, created_at, updated_at) 
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
 			`
-	_, err = repo.db.ExecContext(ctx, query, users.ID, users.Name, users.Telephone, users.Email, users.Password, users.Role, users.Saldo, users.IsVerified, users.CreatedAt, users.UpdatedAt)
+	_, err = repo.db.ExecContext(ctx, query, users.Name, users.Telephone, users.Email, users.Password, users.Role, users.Saldo, users.IsVerified, users.CreatedAt, users.UpdatedAt)
 	if err != nil {
 		logrus.WithError(err).Error("repo.CreateUser: failed to create user")
 		return err

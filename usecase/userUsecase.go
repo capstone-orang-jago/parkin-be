@@ -7,7 +7,6 @@ import (
 	"github.com/capstone-orang-jago/parkin-be/domain"
 	"github.com/capstone-orang-jago/parkin-be/dto"
 	"github.com/capstone-orang-jago/parkin-be/helpers"
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -68,7 +67,6 @@ func (usecase *userUsecase) CreateUser(ctx context.Context, req dto.UserRequestD
 		return nil, errors.New("password are required")
 	}
 
-	userId := uuid.NewString()
 	if req.Password != "" {
 		hashedPassword, err := helpers.HassPass(req.Password)
 		if err != nil {
@@ -79,7 +77,6 @@ func (usecase *userUsecase) CreateUser(ctx context.Context, req dto.UserRequestD
 	}
 
 	user := &domain.User{
-		ID:         userId,
 		Name:       req.Name,
 		Telephone:  req.Telephone,
 		Email:      req.Email,

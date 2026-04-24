@@ -149,7 +149,7 @@ paths:
       summary: Logout a user
       tags:
       - auth
-  /auth/refresh-token:
+  /auth/refresh:
     post:
       consumes:
       - application/json

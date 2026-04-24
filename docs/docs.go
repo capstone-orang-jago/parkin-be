@@ -122,7 +122,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/refresh-token": {
+        "/auth/refresh": {
             "post": {
                 "consumes": [
                     "application/json"

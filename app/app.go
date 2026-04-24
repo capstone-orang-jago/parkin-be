@@ -9,12 +9,18 @@ import (
 )
 
 type App struct {
-	UserHandler    domain.UserHandler
-	UserUsecase    domain.UserUsecase
-	UserRepository domain.UserRepository
-	AuthHandler    domain.AuthHandler
-	AuthUsecase    domain.AuthUsecase
-	AuthRepository domain.AuthRepository
+	UserHandler            domain.UserHandler
+	UserUsecase            domain.UserUsecase
+	UserRepository         domain.UserRepository
+	AuthHandler            domain.AuthHandler
+	AuthUsecase            domain.AuthUsecase
+	AuthRepository         domain.AuthRepository
+	LokasiParkirRepository domain.LokasiParkirRepository
+	LokasiParkirUsecase    domain.LokasiParkirUsecase
+	LokasiParkirHandler    domain.LokasiParkirHandler
+	QRSessionHandler       domain.QRSessionHandler
+	QRSessionUsecase       domain.QRSessionUsecase
+	QRSessionRepository    domain.QRSessionRepository
 }
 
 func InitApp(cfg *config.Config) App {
@@ -23,18 +29,30 @@ func InitApp(cfg *config.Config) App {
 
 	userRepo := repository.NewUserRepository(db)
 	authRepo := repository.NewAuthRepository(db)
+	lokasiParkirRepo := repository.NewLokasiParkirRepository(db)
+	qrSessionRepo := repository.NewQRSessionRepository(db)
 
 	userUsecase := usecase.NewUserUsecase(userRepo)
 	authUsecase := usecase.NewAuthUsecase(authRepo, userRepo)
+	lokasiParkirUsecase := usecase.NewLokasiParkirUsecase(lokasiParkirRepo)
+	qrSessionUsecase := usecase.NewQRSessionUsecase(qrSessionRepo, lokasiParkirUsecase)
 
 	userHandler := handler.NewUserHandler(userUsecase)
 	authHandler := handler.NewAuthHandler(authUsecase, userUsecase)
+	lokasiParkirHandler := handler.NewLokasiParkirHandler(lokasiParkirUsecase)
+	qrSessionHandler := handler.NewQRSessionHandler(qrSessionUsecase)
 	return App{
-		UserHandler:    userHandler,
-		UserUsecase:    userUsecase,
-		UserRepository: userRepo,
-		AuthHandler:    authHandler,
-		AuthUsecase:    authUsecase,
-		AuthRepository: authRepo,
+		UserHandler:            userHandler,
+		UserUsecase:            userUsecase,
+		UserRepository:         userRepo,
+		AuthHandler:            authHandler,
+		AuthUsecase:            authUsecase,
+		AuthRepository:         authRepo,
+		LokasiParkirRepository: lokasiParkirRepo,
+		LokasiParkirUsecase:    lokasiParkirUsecase,
+		LokasiParkirHandler:    lokasiParkirHandler,
+		QRSessionHandler:       qrSessionHandler,
+		QRSessionUsecase:       qrSessionUsecase,
+		QRSessionRepository:    qrSessionRepo,
 	}
 }

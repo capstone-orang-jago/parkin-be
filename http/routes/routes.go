@@ -69,5 +69,21 @@ func RegisterRoutes(application app.App) http.Handler {
 		auth.POST("/logout", middlewares.AuthMiddleware(), application.AuthHandler.Logout)
 	}
 
+	lokasiParkir := v1.Group("/lokasi-parkir")
+	lokasiParkir.Use(middlewares.AuthMiddleware())
+	{
+		lokasiParkir.GET("/", application.LokasiParkirHandler.GetAllLokasiParkir)
+		lokasiParkir.GET("/:id", application.LokasiParkirHandler.GetLokasiParkirByID)
+		lokasiParkir.GET("/petugas/:petugas_id", application.LokasiParkirHandler.GetLokasiParkirByPetugasID)
+		lokasiParkir.POST("/", application.LokasiParkirHandler.CreateLokasiParkir)
+		lokasiParkir.PUT("/:id", application.LokasiParkirHandler.UpdateLokasiParkir)
+		lokasiParkir.DELETE("/:id", application.LokasiParkirHandler.DeleteLokasiParkir)
+	}
+
+	officer := v1.Group("/officer")
+	officer.Use(middlewares.AuthMiddleware())
+	{
+		officer.POST("/qr-code", application.QRSessionHandler.CreateQRSession)
+	}
 	return router
 }

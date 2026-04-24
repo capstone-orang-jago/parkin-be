@@ -16,6 +16,7 @@ type Config struct {
 	JWTSecret      string
 	SERVER_KEY     string
 	AllowedOrigins []string
+	QR_SECRET_KEY  string
 }
 
 var AppConfig *Config
@@ -35,5 +36,6 @@ func LoadConfig() {
 		DBName:         os.Getenv("DB_NAME"),
 		JWTSecret:      os.Getenv("JWT_SECRET"),
 		AllowedOrigins: []string{os.Getenv("DEV_ORIGIN"), os.Getenv("PROD_ORIGIN")},
+		QR_SECRET_KEY:  os.Getenv("QR_SECRET_KEY"),
 	}
 }

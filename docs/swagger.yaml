@@ -35,6 +35,49 @@ definitions:
       user_id:
         type: string
     type: object
+  dto.LokasiParkirRequestDTO:
+    properties:
+      alamat:
+        type: string
+      isActive:
+        type: boolean
+      namaLokasi:
+        type: string
+      petugasID:
+        type: string
+    type: object
+  dto.LokasiParkirResponseDTO:
+    properties:
+      alamat:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      namaLokasi:
+        type: string
+      petugasID:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  dto.QRSessionResponseDTO:
+    properties:
+      expires_at:
+        type: string
+      hmac:
+        type: string
+      is_revoked:
+        type: boolean
+      location_id:
+        type: string
+      payload:
+        type: string
+      petugas_id:
+        type: string
+    type: object
   dto.RefreshTokenRequestDTO:
     properties:
       refresh_token:
@@ -228,6 +271,198 @@ paths:
       summary: Check server status
       tags:
       - health
+  /lokasi-parkir:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.LokasiParkirResponseDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all lokasi parkir
+      tags:
+      - lokasi-parkir
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Lokasi Parkir Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LokasiParkirRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.LokasiParkirResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new lokasi parkir
+      tags:
+      - lokasi-parkir
+  /lokasi-parkir/{id}:
+    delete:
+      parameters:
+      - description: Lokasi Parkir ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete lokasi parkir
+      tags:
+      - lokasi-parkir
+    get:
+      parameters:
+      - description: Lokasi Parkir ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LokasiParkirResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Get lokasi parkir by ID
+      tags:
+      - lokasi-parkir
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Lokasi Parkir ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Lokasi Parkir Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LokasiParkirRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LokasiParkirResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Update lokasi parkir
+      tags:
+      - lokasi-parkir
+  /lokasi-parkir/petugas/{petugas_id}:
+    get:
+      parameters:
+      - description: Petugas ID
+        in: path
+        name: petugas_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LokasiParkirResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Get lokasi parkir by Petugas ID
+      tags:
+      - lokasi-parkir
+  /officer/qr-code:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.QRSessionResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new QR session for petugas
+      tags:
+      - qr-session
   /users:
     get:
       produces:

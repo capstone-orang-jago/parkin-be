@@ -29,7 +29,7 @@ WHERE email IS NOT NULL;
 CREATE TABLE otp_codes (
     id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    code_hash    VARCHAR(255) NOT NULL,
+    code    VARCHAR(255) NOT NULL,
     expired_at   TIMESTAMPTZ  NOT NULL,
     attempts     SMALLINT     NOT NULL DEFAULT 0,
     is_used      BOOLEAN      NOT NULL DEFAULT FALSE,
@@ -58,8 +58,8 @@ CREATE TABLE qr_sessions (
     lokasi_id   UUID NOT NULL REFERENCES lokasi_parkir(id),
     petugas_id  UUID NOT NULL REFERENCES users(id),
     payload     TEXT NOT NULL,
-    hmac_hash   VARCHAR(64) NOT NULL,
-    expired_at  TIMESTAMPTZ NOT NULL,
+    hmac   VARCHAR(64) NOT NULL,
+    expires_at  TIMESTAMPTZ NOT NULL,
     is_revoked  BOOLEAN NOT NULL DEFAULT FALSE,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

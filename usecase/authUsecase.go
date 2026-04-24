@@ -50,7 +50,7 @@ func (usecase *authUsecase) Login(ctx context.Context, req dto.LoginRequestDTO) 
 	}
 	hashedToken := helpers.HashToken(refreshToken)
 
-	accessToken, err := helpers.GenerateAccessToken(user.ID, config.AppConfig.JWTSecret, time.Hour*2)
+	accessToken, err := helpers.GenerateAccessToken(user.ID, user.Role, user.Name, config.AppConfig.JWTSecret, time.Hour*2)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.Login: failed to generate access token")
 		return nil, errors.New("failed to generate access token")
@@ -91,6 +91,12 @@ func (usecase *authUsecase) RefreshToken(ctx context.Context, req dto.RefreshTok
 		return nil, errors.New("invalid refresh token")
 	}
 
+	user, err := usecase.userRepo.GetUserByID(ctx, auth.UserID)
+	if err != nil {
+		logrus.WithError(err).Error("usecase.RefreshToken: failed to get user")
+		return nil, errors.New("failed to get user")
+	}
+
 	if time.Now().After(auth.ExpiresAt) {
 		logrus.WithError(err).Error("usecase.RefreshToken: refresh token expired")
 		return nil, errors.New("refresh token expired")
@@ -104,6 +110,8 @@ func (usecase *authUsecase) RefreshToken(ctx context.Context, req dto.RefreshTok
 
 	newAccessToken, err := helpers.GenerateAccessToken(
 		auth.UserID,
+		user.Role,
+		user.Name,
 		config.AppConfig.JWTSecret,
 		time.Hour*2,
 	)

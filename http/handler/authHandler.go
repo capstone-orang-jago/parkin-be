@@ -135,7 +135,7 @@ func (handler *authHandler) Login(c *gin.Context) {
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 401 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /auth/refresh-token [post]
+// @Router /auth/refresh [post]
 func (handler *authHandler) RefreshToken(c *gin.Context) {
 	var req dto.RefreshTokenRequestDTO
 	if err := helpers.DecodeJSON(c, &req); err != nil {
@@ -191,7 +191,7 @@ func (handler *authHandler) Logout(c *gin.Context) {
 		return
 	}
 
-	userId := c.GetString("user_id")
+	userId := c.GetString("sub")
 
 	err := handler.authUsecase.Logout(c.Request.Context(), userId, req.RefreshToken)
 	if err != nil {

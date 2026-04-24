@@ -65,7 +65,7 @@ func RegisterRoutes(application app.App) http.Handler {
 	{
 		auth.POST("/register", application.AuthHandler.Register)
 		auth.POST("/login", application.AuthHandler.Login)
-		auth.POST("/refresh-token", application.AuthHandler.RefreshToken)
+		auth.POST("/refresh", application.AuthHandler.RefreshToken)
 		auth.POST("/logout", middlewares.AuthMiddleware(), application.AuthHandler.Logout)
 	}
 

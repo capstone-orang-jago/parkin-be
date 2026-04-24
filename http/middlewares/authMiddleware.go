@@ -42,7 +42,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		userID, ok := token["user_id"].(string)
+		userID, ok := token["sub"].(string)
 		if !ok {
 			helpers.Response(c, domain.HttpResponse{
 				Code:    401,

@@ -145,15 +145,15 @@ func (repo *userRepository) GetUserSaldo(ctx context.Context, id string) (saldo 
 	return saldo, nil
 }
 
-func (repo *userRepository) UpdateUserSaldo(ctx context.Context, id string, newSaldo int64) error {
+func (repo *userRepository) DeductUserSaldo(ctx context.Context, id string, amount int64) error {
 	query := `
 			UPDATE users 
-			SET saldo = $1, updated_at = NOW() 
+			SET saldo = saldo - $1, updated_at = NOW() 
 			WHERE id = $2
 			`
-	_, err := repo.db.ExecContext(ctx, query, newSaldo, id)
+	_, err := repo.db.ExecContext(ctx, query, amount, id)
 	if err != nil {
-		logrus.WithError(err).Error("repo.UpdateUserSaldo: failed to update user saldo")
+		logrus.WithError(err).Error("repo.DeductUserSaldo: failed to deduct user saldo")
 		return err
 	}
 	return nil

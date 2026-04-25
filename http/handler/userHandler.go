@@ -219,8 +219,8 @@ func (handler *userHandler) GetUserSaldo(c *gin.Context) {
 	})
 }
 
-// UpdateUserSaldo godoc
-// @Summary Update user saldo
+// DeductUserSaldo godoc
+// @Summary Deduct user saldo
 // @Tags users
 // @Accept json
 // @Produce json
@@ -230,12 +230,12 @@ func (handler *userHandler) GetUserSaldo(c *gin.Context) {
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
 // @Router /users/me/saldo [put]
-func (handler *userHandler) UpdateUserSaldo(c *gin.Context) {
+func (handler *userHandler) DeductUserSaldo(c *gin.Context) {
 	userId := c.GetString("sub")
 
 	var req dto.UserSaldoRequestDTO
 	if err := helpers.DecodeJSON(c, &req); err != nil {
-		logrus.WithError(err).Error("handler.UpdateUserSaldo: failed to decode request body")
+		logrus.WithError(err).Error("handler.DeductUserSaldo: failed to decode request body")
 		helpers.Response(c, domain.HttpResponse{
 			Code:    http.StatusBadRequest,
 			Message: "invalid request body",
@@ -243,9 +243,9 @@ func (handler *userHandler) UpdateUserSaldo(c *gin.Context) {
 		return
 	}
 
-	err := handler.userUsecase.UpdateUserSaldo(c.Request.Context(), userId, req.Nominal)
+	err := handler.userUsecase.DeductUserSaldo(c.Request.Context(), userId, req.Nominal)
 	if err != nil {
-		logrus.WithError(err).Error("handler.UpdateUserSaldo: failed to update user saldo")
+		logrus.WithError(err).Error("handler.DeductUserSaldo: failed to deduct user saldo")
 		helpers.Response(c, domain.HttpResponse{
 			Code:    http.StatusInternalServerError,
 			Message: err.Error(),
@@ -255,6 +255,6 @@ func (handler *userHandler) UpdateUserSaldo(c *gin.Context) {
 
 	helpers.Response(c, domain.HttpResponse{
 		Code:    http.StatusOK,
-		Message: "user saldo updated successfully",
+		Message: "user saldo deducted successfully",
 	})
 }

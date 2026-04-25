@@ -229,15 +229,15 @@ func (usecase *userUsecase) GetUserSaldo(ctx context.Context, id string) (saldo 
 	return saldo, nil
 }
 
-func (usecase *userUsecase) UpdateUserSaldo(ctx context.Context, id string, newSaldo int64) error {
+func (usecase *userUsecase) DeductUserSaldo(ctx context.Context, id string, amount int64) error {
 	user, err := usecase.userRepo.GetUserByID(ctx, id)
 	if err != nil {
-		logrus.WithError(err).Error("usecase.UpdateUserSaldo: failed to get user by ID")
+		logrus.WithError(err).Error("usecase.DeductUserSaldo: failed to get user by ID")
 		return err
 	}
-	err = usecase.userRepo.UpdateUserSaldo(ctx, user.ID, newSaldo)
+	err = usecase.userRepo.DeductUserSaldo(ctx, user.ID, amount)
 	if err != nil {
-		logrus.WithError(err).Error("usecase.UpdateUserSaldo: failed to update user saldo")
+		logrus.WithError(err).Error("usecase.DeductUserSaldo: failed to deduct user saldo")
 		return err
 	}
 	return nil

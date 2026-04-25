@@ -37,6 +37,10 @@ func (usecase *authUsecase) Login(ctx context.Context, req dto.LoginRequestDTO) 
 		return nil, errors.New("invalid email or password")
 	}
 
+	if user == nil {
+		return nil, errors.New("invalid email or password")
+	}
+
 	_, err = helpers.ComparePass(user.Password, req.Password)
 	if err != nil {
 		return nil, errors.New("invalid email or password")

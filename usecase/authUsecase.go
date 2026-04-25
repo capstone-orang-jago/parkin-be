@@ -38,6 +38,7 @@ func (usecase *authUsecase) Login(ctx context.Context, req dto.LoginRequestDTO) 
 	}
 
 	if user == nil {
+		logrus.Info("usecase.Login: user not found for email")
 		return nil, errors.New("invalid email or password")
 	}
 
@@ -51,9 +52,16 @@ func (usecase *authUsecase) Login(ctx context.Context, req dto.LoginRequestDTO) 
 		logrus.WithError(err).Error("usecase.Login: failed to generate refresh token")
 		return nil, errors.New("failed to generate refresh token")
 	}
+
 	hashedToken := helpers.HashToken(refreshToken)
 
-	accessToken, err := helpers.GenerateAccessToken(user.ID, user.Role, user.Name, config.AppConfig.JWTSecret, time.Hour*2)
+	accessToken, err := helpers.GenerateAccessToken(
+		user.ID,
+		user.Role,
+		user.Name,
+		config.AppConfig.JWTSecret,
+		time.Hour*2,
+	)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.Login: failed to generate access token")
 		return nil, errors.New("failed to generate access token")
@@ -85,9 +93,15 @@ func (usecase *authUsecase) RefreshToken(ctx context.Context, req dto.RefreshTok
 	}
 
 	oldHashedToken := helpers.HashToken(req.RefreshToken)
+
 	auth, err := usecase.authRepo.GetRefreshToken(ctx, oldHashedToken)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.RefreshToken: invalid refresh token")
+		return nil, errors.New("invalid refresh token")
+	}
+
+	if auth == nil {
+		logrus.Error("usecase.RefreshToken: refresh token not found")
 		return nil, errors.New("invalid refresh token")
 	}
 
@@ -97,8 +111,13 @@ func (usecase *authUsecase) RefreshToken(ctx context.Context, req dto.RefreshTok
 		return nil, errors.New("failed to get user")
 	}
 
+	if user == nil {
+		logrus.Error("usecase.RefreshToken: user not found")
+		return nil, errors.New("user not found")
+	}
+
 	if time.Now().After(auth.ExpiresAt) {
-		logrus.WithError(err).Error("usecase.RefreshToken: refresh token expired")
+		logrus.Error("usecase.RefreshToken: refresh token expired")
 		return nil, errors.New("refresh token expired")
 	}
 
@@ -121,6 +140,7 @@ func (usecase *authUsecase) RefreshToken(ctx context.Context, req dto.RefreshTok
 	}
 
 	newHashedToken := helpers.HashToken(newRefreshToken)
+
 	newAuth := &domain.Auth{
 		UserID:           auth.UserID,
 		RefreshTokenHash: newHashedToken,
@@ -155,6 +175,10 @@ func (usecase *authUsecase) Logout(ctx context.Context, userId, token string) er
 	auth, err := usecase.authRepo.GetRefreshToken(ctx, hashedToken)
 	if err != nil {
 		return err
+	}
+
+	if auth == nil {
+		return errors.New("refresh token not found")
 	}
 
 	if auth.UserID != userId {

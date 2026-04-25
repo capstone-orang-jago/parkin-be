@@ -26,6 +26,9 @@ func (usecase *userUsecase) GetAllUsers(ctx context.Context) (res []*dto.UserRes
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetAllUsers: failed to get all users")
 		return nil, err
+	} else if users == nil {
+		logrus.WithError(err).Info("usecase.GetAllUsers: no users found")
+		return nil, nil
 	}
 
 	responses := make([]*dto.UserResponseDTO, 0, len(users))
@@ -54,6 +57,9 @@ func (usecase *userUsecase) GetUserByID(ctx context.Context, id string) (res *dt
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetUserByID: failed to get user by ID")
 		return nil, err
+	} else if user == nil {
+		logrus.WithError(err).Info("usecase.GetUserByID: no user found for ID")
+		return nil, nil
 	}
 
 	response := &dto.UserResponseDTO{
@@ -77,6 +83,9 @@ func (usecase *userUsecase) GetUserByEmail(ctx context.Context, email string) (r
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetUserByEmail: failed to get user by email")
 		return nil, err
+	} else if user == nil {
+		logrus.WithError(err).Info("usecase.GetUserByEmail: no user found for email")
+		return nil, nil
 	}
 
 	response := &dto.UserResponseDTO{
@@ -153,6 +162,9 @@ func (usecase *userUsecase) UpdateUser(ctx context.Context, req dto.UserRequestD
 	if err != nil {
 		logrus.WithError(err).Error("usecase.UpdateUser: failed to get user by ID")
 		return nil, err
+	} else if user == nil {
+		logrus.WithError(err).Info("usecase.UpdateUser: no user found for ID")
+		return nil, nil
 	}
 
 	if req.Name == "" && req.Email == "" && req.Password == "" && req.Telephone == "" {
@@ -199,10 +211,13 @@ func (usecase *userUsecase) UpdateUser(ctx context.Context, req dto.UserRequestD
 }
 
 func (usecase *userUsecase) DeleteUser(ctx context.Context, id string) error {
-	_, err := usecase.userRepo.GetUserByID(ctx, id)
+	user, err := usecase.userRepo.GetUserByID(ctx, id)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.DeleteUser: failed to get user by ID")
 		return err
+	} else if user == nil {
+		logrus.WithError(err).Info("usecase.DeleteUser: no user found for ID")
+		return nil
 	}
 
 	err = usecase.userRepo.DeleteUser(ctx, id)
@@ -218,6 +233,9 @@ func (usecase *userUsecase) GetUserSaldo(ctx context.Context, id string) (saldo 
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetUserSaldo: failed to get user by ID")
 		return 0, err
+	} else if user == nil {
+		logrus.WithError(err).Info("usecase.GetUserSaldo: no user found for ID")
+		return 0, nil
 	}
 
 	saldo, err = usecase.userRepo.GetUserSaldo(ctx, user.ID)
@@ -234,11 +252,16 @@ func (usecase *userUsecase) DeductUserSaldo(ctx context.Context, id string, amou
 	if err != nil {
 		logrus.WithError(err).Error("usecase.DeductUserSaldo: failed to get user by ID")
 		return err
+	} else if user == nil {
+		logrus.WithError(err).Info("usecase.DeductUserSaldo: no user found for ID")
+		return nil
 	}
+
 	err = usecase.userRepo.DeductUserSaldo(ctx, user.ID, amount)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.DeductUserSaldo: failed to deduct user saldo")
 		return err
 	}
+
 	return nil
 }

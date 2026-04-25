@@ -87,5 +87,13 @@ func RegisterRoutes(application app.App) http.Handler {
 	{
 		officer.POST("/qr-code", application.QRSessionHandler.CreateQRSession)
 	}
+
+	transaksiParkir := v1.Group("/transaksi-parkir")
+	transaksiParkir.Use(middlewares.AuthMiddleware())
+	{
+		transaksiParkir.POST("/", application.TransaksiParkirHandler.CreateTransaksiParkir)
+		transaksiParkir.GET("/:id", application.TransaksiParkirHandler.GetTransaksiParkirByID)
+		transaksiParkir.GET("/user/me", application.TransaksiParkirHandler.GetAllTransaksiParkirByPenggunaID)
+	}
 	return router
 }

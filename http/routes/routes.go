@@ -59,6 +59,8 @@ func RegisterRoutes(application app.App) http.Handler {
 		user.POST("/", application.UserHandler.CreateUser)
 		user.PUT("/:id", application.UserHandler.UpdateUser)
 		user.DELETE("/:id", application.UserHandler.DeleteUser)
+		user.GET("/me/saldo", application.UserHandler.GetUserSaldo)
+		user.PUT("/me/saldo", application.UserHandler.UpdateUserSaldo)
 	}
 
 	auth := v1.Group("/auth")

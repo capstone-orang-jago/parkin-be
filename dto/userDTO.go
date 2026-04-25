@@ -21,3 +21,12 @@ type UserResponseDTO struct {
 	CreatedAt  time.Time `json:"created_at,omitempty"`
 	UpdatedAt  time.Time `json:"updated_at,omitempty"`
 }
+
+type UserSaldoRequestDTO struct {
+	Nominal int64 `json:"nominal"`
+}
+
+type UserSaldoResponseDTO struct {
+	ID    string `json:"id"`
+	Saldo int64  `json:"saldo"`
+}

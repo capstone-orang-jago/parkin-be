@@ -126,3 +126,35 @@ func (repo *userRepository) DeleteUser(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+func (repo *userRepository) GetUserSaldo(ctx context.Context, id string) (saldo int64, err error) {
+	query := `
+			SELECT saldo 
+			FROM users 
+			WHERE id = $1
+			`
+	err = repo.db.QueryRowContext(ctx, query, id).Scan(&saldo)
+	if err == sql.ErrNoRows {
+		logrus.WithError(err).Info("repo.GetUserSaldo: no user found for ID")
+		return 0, nil
+	} else if err != nil {
+		logrus.WithError(err).Error("repo.GetUserSaldo: failed to get user saldo by ID")
+		return 0, err
+	}
+
+	return saldo, nil
+}
+
+func (repo *userRepository) UpdateUserSaldo(ctx context.Context, id string, newSaldo int64) error {
+	query := `
+			UPDATE users 
+			SET saldo = $1, updated_at = NOW() 
+			WHERE id = $2
+			`
+	_, err := repo.db.ExecContext(ctx, query, newSaldo, id)
+	if err != nil {
+		logrus.WithError(err).Error("repo.UpdateUserSaldo: failed to update user saldo")
+		return err
+	}
+	return nil
+}

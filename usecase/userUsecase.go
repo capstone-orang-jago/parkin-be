@@ -147,3 +147,33 @@ func (usecase *userUsecase) DeleteUser(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+func (usecase *userUsecase) GetUserSaldo(ctx context.Context, id string) (saldo int64, err error) {
+	user, err := usecase.userRepo.GetUserByID(ctx, id)
+	if err != nil {
+		logrus.WithError(err).Error("usecase.GetUserSaldo: failed to get user by ID")
+		return 0, err
+	}
+
+	saldo, err = usecase.userRepo.GetUserSaldo(ctx, user.ID)
+	if err != nil {
+		logrus.WithError(err).Error("usecase.GetUserSaldo: failed to get user saldo by ID")
+		return 0, err
+	}
+
+	return saldo, nil
+}
+
+func (usecase *userUsecase) UpdateUserSaldo(ctx context.Context, id string, newSaldo int64) error {
+	user, err := usecase.userRepo.GetUserByID(ctx, id)
+	if err != nil {
+		logrus.WithError(err).Error("usecase.UpdateUserSaldo: failed to get user by ID")
+		return err
+	}
+	err = usecase.userRepo.UpdateUserSaldo(ctx, user.ID, newSaldo)
+	if err != nil {
+		logrus.WithError(err).Error("usecase.UpdateUserSaldo: failed to update user saldo")
+		return err
+	}
+	return nil
+}

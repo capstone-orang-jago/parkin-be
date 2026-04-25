@@ -552,6 +552,113 @@ const docTemplate = `{
                 }
             }
         },
+        "/transaksi-parkir": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new parking transaction based on the provided QR payload and vehicle type",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transaksi Parkir"
+                ],
+                "summary": "Create a new parking transaction",
+                "parameters": [
+                    {
+                        "description": "Transaksi Parkir Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.TransaksiParkirRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TransaksiParkirResponseDTO"
+                        }
+                    }
+                }
+            }
+        },
+        "/transaksi-parkir/user/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve all parking transactions associated with a specific user ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transaksi Parkir"
+                ],
+                "summary": "Get all parking transactions by user ID",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.TransaksiParkirResponseDTO"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/transaksi-parkir/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a parking transaction by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transaksi Parkir"
+                ],
+                "summary": "Get parking transaction by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaksi Parkir ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TransaksiParkirResponseDTO"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "security": [
@@ -702,7 +809,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Update user saldo",
+                "summary": "Deduct user saldo",
                 "parameters": [
                     {
                         "description": "User Saldo Request",
@@ -984,6 +1091,9 @@ const docTemplate = `{
                 "hmac": {
                     "type": "string"
                 },
+                "id": {
+                    "type": "string"
+                },
                 "is_revoked": {
                     "type": "boolean"
                 },
@@ -1002,6 +1112,56 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.TransaksiParkirRequestDTO": {
+            "type": "object",
+            "required": [
+                "jenis_kendaraan",
+                "qr_payload"
+            ],
+            "properties": {
+                "jenis_kendaraan": {
+                    "type": "string"
+                },
+                "qr_payload": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.TransaksiParkirResponseDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "jenis_kendaraan": {
+                    "type": "string"
+                },
+                "kode_transaksi": {
+                    "type": "string"
+                },
+                "lokasi": {
+                    "$ref": "#/definitions/dto.LokasiParkirResponseDTO"
+                },
+                "petugas": {
+                    "$ref": "#/definitions/dto.UserResponseDTO"
+                },
+                "saldo_sebelum": {
+                    "type": "integer"
+                },
+                "saldo_sesudah": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tarif": {
+                    "type": "integer"
+                },
+                "waktu": {
                     "type": "string"
                 }
             }

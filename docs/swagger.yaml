@@ -69,6 +69,8 @@ definitions:
         type: string
       hmac:
         type: string
+      id:
+        type: string
       is_revoked:
         type: boolean
       location_id:
@@ -81,6 +83,39 @@ definitions:
   dto.RefreshTokenRequestDTO:
     properties:
       refresh_token:
+        type: string
+    type: object
+  dto.TransaksiParkirRequestDTO:
+    properties:
+      jenis_kendaraan:
+        type: string
+      qr_payload:
+        type: string
+    required:
+    - jenis_kendaraan
+    - qr_payload
+    type: object
+  dto.TransaksiParkirResponseDTO:
+    properties:
+      id:
+        type: string
+      jenis_kendaraan:
+        type: string
+      kode_transaksi:
+        type: string
+      lokasi:
+        $ref: '#/definitions/dto.LokasiParkirResponseDTO'
+      petugas:
+        $ref: '#/definitions/dto.UserResponseDTO'
+      saldo_sebelum:
+        type: integer
+      saldo_sesudah:
+        type: integer
+      status:
+        type: string
+      tarif:
+        type: integer
+      waktu:
         type: string
     type: object
   dto.UserRequestDTO:
@@ -468,6 +503,74 @@ paths:
       summary: Create a new QR session for petugas
       tags:
       - qr-session
+  /transaksi-parkir:
+    post:
+      consumes:
+      - application/json
+      description: Create a new parking transaction based on the provided QR payload
+        and vehicle type
+      parameters:
+      - description: Transaksi Parkir Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TransaksiParkirRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.TransaksiParkirResponseDTO'
+      security:
+      - BearerAuth: []
+      summary: Create a new parking transaction
+      tags:
+      - Transaksi Parkir
+  /transaksi-parkir/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a parking transaction by its ID
+      parameters:
+      - description: Transaksi Parkir ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TransaksiParkirResponseDTO'
+      security:
+      - BearerAuth: []
+      summary: Get parking transaction by ID
+      tags:
+      - Transaksi Parkir
+  /transaksi-parkir/user/me:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all parking transactions associated with a specific user
+        ID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.TransaksiParkirResponseDTO'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Get all parking transactions by user ID
+      tags:
+      - Transaksi Parkir
   /users:
     get:
       produces:
@@ -665,7 +768,7 @@ paths:
             $ref: '#/definitions/domain.HttpResponse'
       security:
       - BearerAuth: []
-      summary: Update user saldo
+      summary: Deduct user saldo
       tags:
       - users
 securityDefinitions:

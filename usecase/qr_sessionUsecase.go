@@ -11,6 +11,7 @@ import (
 
 	"github.com/capstone-orang-jago/parkin-be/config"
 	"github.com/capstone-orang-jago/parkin-be/domain"
+	"github.com/capstone-orang-jago/parkin-be/dto"
 	"github.com/sirupsen/logrus"
 )
 
@@ -26,7 +27,7 @@ func NewQRSessionUsecase(qrSessionRepo domain.QRSessionRepository, parkirLokasi 
 	}
 }
 
-func (usecase *qrSessionUsecase) CreateQRSession(ctx context.Context, petugasID string) (res *domain.QRSession, err error) {
+func (usecase *qrSessionUsecase) CreateQRSession(ctx context.Context, petugasID string) (res *dto.QRSessionResponseDTO, err error) {
 	activeQR, err := usecase.GetActiveQRByPetugasID(ctx, petugasID)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.CreateQRSession: failed to get active QR session by petugas ID")
@@ -71,17 +72,37 @@ func (usecase *qrSessionUsecase) CreateQRSession(ctx context.Context, petugasID 
 		return nil, err
 	}
 
-	return qrSession, nil
+	response := &dto.QRSessionResponseDTO{
+		ID:         qrSession.ID,
+		LocationID: qrSession.LocationID,
+		PetugasID:  qrSession.PetugasID,
+		Payload:    qrSession.Payload,
+		HMAC:       qrSession.HMAC,
+		ExpiresAt:  qrSession.ExpiresAt,
+		IsRevoked:  qrSession.IsRevoked,
+	}
+
+	return response, nil
 }
 
-func (usecase *qrSessionUsecase) GetActiveQRByPetugasID(ctx context.Context, petugasID string) (res *domain.QRSession, err error) {
+func (usecase *qrSessionUsecase) GetActiveQRByPetugasID(ctx context.Context, petugasID string) (res *dto.QRSessionResponseDTO, err error) {
 	data, err := usecase.qrSessionRepo.GetActiveQRByPetugasID(ctx, petugasID)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetActiveQRByPetugasID: failed to get active QR session by petugas ID")
 		return nil, err
 	}
 
-	return data, nil
+	response := &dto.QRSessionResponseDTO{
+		ID:         data.ID,
+		LocationID: data.LocationID,
+		PetugasID:  data.PetugasID,
+		Payload:    data.Payload,
+		HMAC:       data.HMAC,
+		ExpiresAt:  data.ExpiresAt,
+		IsRevoked:  data.IsRevoked,
+	}
+
+	return response, nil
 }
 
 func (usecase *qrSessionUsecase) GetLokasiByPetugasID(ctx context.Context, petugasID string) (string, error) {

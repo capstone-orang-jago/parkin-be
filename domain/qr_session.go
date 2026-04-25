@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/capstone-orang-jago/parkin-be/dto"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,13 +24,15 @@ type (
 		GetActiveQRByPetugasID(ctx context.Context, petugasID string) (*QRSession, error)
 		GetLokasiByPetugasID(ctx context.Context, petugasID string) (string, error)
 		RevokeQRSession(ctx context.Context, id string) error
+		GetQRSessionByPayload(ctx context.Context, payload string) (*QRSession, error)
 	}
 
 	QRSessionUsecase interface {
-		CreateQRSession(ctx context.Context, petugasID string) (res *QRSession, err error)
-		GetActiveQRByPetugasID(ctx context.Context, petugasID string) (res *QRSession, err error)
+		CreateQRSession(ctx context.Context, petugasID string) (res *dto.QRSessionResponseDTO, err error)
+		GetActiveQRByPetugasID(ctx context.Context, petugasID string) (res *dto.QRSessionResponseDTO, err error)
 		GetLokasiByPetugasID(ctx context.Context, petugasID string) (string, error)
 		RevokeQRSession(ctx context.Context, id string) error
+		GetQRSessionByPayload(ctx context.Context, payload string) (*dto.QRSessionResponseDTO, error)
 	}
 
 	QRSessionHandler interface {

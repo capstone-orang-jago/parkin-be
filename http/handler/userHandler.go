@@ -40,27 +40,10 @@ func (handler *userHandler) GetAllUsers(c *gin.Context) {
 		return
 	}
 
-	responses := make([]dto.UserResponseDTO, 0, len(users))
-
-	for _, user := range users {
-		response := dto.UserResponseDTO{
-			ID:         user.ID,
-			Name:       user.Name,
-			Telephone:  user.Telephone,
-			Email:      user.Email,
-			Role:       user.Role,
-			Saldo:      user.Saldo,
-			IsVerified: user.IsVerified,
-			CreatedAt:  user.CreatedAt,
-			UpdatedAt:  user.UpdatedAt,
-		}
-		responses = append(responses, response)
-	}
-
 	helpers.Response(c, domain.HttpResponse{
 		Code:    http.StatusOK,
 		Message: "success",
-		Data:    responses,
+		Data:    users,
 	})
 }
 
@@ -86,22 +69,10 @@ func (handler *userHandler) GetUserByID(c *gin.Context) {
 		return
 	}
 
-	response := dto.UserResponseDTO{
-		ID:         user.ID,
-		Name:       user.Name,
-		Telephone:  user.Telephone,
-		Email:      user.Email,
-		Role:       user.Role,
-		Saldo:      user.Saldo,
-		IsVerified: user.IsVerified,
-		CreatedAt:  user.CreatedAt,
-		UpdatedAt:  user.UpdatedAt,
-	}
-
 	helpers.Response(c, domain.HttpResponse{
 		Code:    http.StatusOK,
 		Message: "success",
-		Data:    response,
+		Data:    user,
 	})
 }
 
@@ -137,22 +108,10 @@ func (handler *userHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	response := dto.UserResponseDTO{
-		ID:         user.ID,
-		Name:       user.Name,
-		Telephone:  user.Telephone,
-		Email:      user.Email,
-		Role:       user.Role,
-		Saldo:      user.Saldo,
-		IsVerified: user.IsVerified,
-		CreatedAt:  user.CreatedAt,
-		UpdatedAt:  user.UpdatedAt,
-	}
-
 	helpers.Response(c, domain.HttpResponse{
 		Code:    http.StatusCreated,
 		Message: "user created successfully",
-		Data:    response,
+		Data:    user,
 	})
 }
 
@@ -191,22 +150,10 @@ func (handler *userHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	response := dto.UserResponseDTO{
-		ID:         user.ID,
-		Name:       user.Name,
-		Telephone:  user.Telephone,
-		Email:      user.Email,
-		Role:       user.Role,
-		Saldo:      user.Saldo,
-		IsVerified: user.IsVerified,
-		CreatedAt:  user.CreatedAt,
-		UpdatedAt:  user.UpdatedAt,
-	}
-
 	helpers.Response(c, domain.HttpResponse{
 		Code:    http.StatusOK,
 		Message: "user updated successfully",
-		Data:    response,
+		Data:    user,
 	})
 }
 

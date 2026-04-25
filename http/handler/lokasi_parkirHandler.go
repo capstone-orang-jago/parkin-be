@@ -52,20 +52,10 @@ func (handler *lokasiParkirHandler) CreateLokasiParkir(c *gin.Context) {
 		return
 	}
 
-	response := dto.LokasiParkirResponseDTO{
-		ID:         lokasiParkir.ID,
-		NamaLokasi: lokasiParkir.NamaLokasi,
-		Alamat:     lokasiParkir.Alamat,
-		PetugasID:  lokasiParkir.PetugasID,
-		IsActive:   lokasiParkir.IsActive,
-		CreatedAt:  lokasiParkir.CreatedAt,
-		UpdatedAt:  lokasiParkir.UpdatedAt,
-	}
-
 	helpers.Response(c, domain.HttpResponse{
 		Code:    http.StatusCreated,
 		Message: "lokasi parkir created successfully",
-		Data:    response,
+		Data:    lokasiParkir,
 	})
 }
 
@@ -88,24 +78,10 @@ func (handler *lokasiParkirHandler) GetAllLokasiParkir(c *gin.Context) {
 		return
 	}
 
-	responses := make([]dto.LokasiParkirResponseDTO, 0, len(lokasiParkir))
-	for _, lokasi := range lokasiParkir {
-		response := dto.LokasiParkirResponseDTO{
-			ID:         lokasi.ID,
-			NamaLokasi: lokasi.NamaLokasi,
-			Alamat:     lokasi.Alamat,
-			PetugasID:  lokasi.PetugasID,
-			IsActive:   lokasi.IsActive,
-			CreatedAt:  lokasi.CreatedAt,
-			UpdatedAt:  lokasi.UpdatedAt,
-		}
-		responses = append(responses, response)
-	}
-
 	helpers.Response(c, domain.HttpResponse{
 		Code:    http.StatusOK,
 		Message: "success",
-		Data:    responses,
+		Data:    lokasiParkir,
 	})
 }
 

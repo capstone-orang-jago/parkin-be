@@ -3,6 +3,7 @@ package dto
 import "time"
 
 type QRSessionResponseDTO struct {
+	ID         string    `json:"id"`
 	LocationID string    `json:"location_id"`
 	PetugasID  string    `json:"petugas_id"`
 	Payload    string    `json:"payload"`

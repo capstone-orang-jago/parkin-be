@@ -20,40 +20,81 @@ func NewUserUsecase(userRepo domain.UserRepository) domain.UserUsecase {
 	}
 }
 
-func (usecase *userUsecase) GetAllUsers(ctx context.Context) (users []*domain.User, err error) {
-	users, err = usecase.userRepo.GetAllUsers(ctx)
+func (usecase *userUsecase) GetAllUsers(ctx context.Context) (res []*dto.UserResponseDTO, err error) {
+	users, err := usecase.userRepo.GetAllUsers(ctx)
 
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetAllUsers: failed to get all users")
 		return nil, err
 	}
 
-	return users, nil
+	responses := make([]*dto.UserResponseDTO, 0, len(users))
+
+	for _, user := range users {
+		response := &dto.UserResponseDTO{
+			ID:         user.ID,
+			Name:       user.Name,
+			Telephone:  user.Telephone,
+			Email:      user.Email,
+			Role:       user.Role,
+			Saldo:      user.Saldo,
+			IsVerified: user.IsVerified,
+			CreatedAt:  user.CreatedAt,
+			UpdatedAt:  user.UpdatedAt,
+		}
+		responses = append(responses, response)
+	}
+
+	return responses, nil
 }
 
-func (usecase *userUsecase) GetUserByID(ctx context.Context, id string) (user *domain.User, err error) {
-	user, err = usecase.userRepo.GetUserByID(ctx, id)
+func (usecase *userUsecase) GetUserByID(ctx context.Context, id string) (res *dto.UserResponseDTO, err error) {
+	user, err := usecase.userRepo.GetUserByID(ctx, id)
 
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetUserByID: failed to get user by ID")
 		return nil, err
 	}
 
-	return user, nil
+	response := &dto.UserResponseDTO{
+		ID:         user.ID,
+		Name:       user.Name,
+		Telephone:  user.Telephone,
+		Email:      user.Email,
+		Role:       user.Role,
+		Saldo:      user.Saldo,
+		IsVerified: user.IsVerified,
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
+	}
+
+	return response, nil
 }
 
-func (usecase *userUsecase) GetUserByEmail(ctx context.Context, email string) (user *domain.User, err error) {
-	user, err = usecase.userRepo.GetUserByEmail(ctx, email)
+func (usecase *userUsecase) GetUserByEmail(ctx context.Context, email string) (res *dto.UserResponseDTO, err error) {
+	user, err := usecase.userRepo.GetUserByEmail(ctx, email)
 
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetUserByEmail: failed to get user by email")
 		return nil, err
 	}
 
-	return user, nil
+	response := &dto.UserResponseDTO{
+		ID:         user.ID,
+		Name:       user.Name,
+		Telephone:  user.Telephone,
+		Email:      user.Email,
+		Role:       user.Role,
+		Saldo:      user.Saldo,
+		IsVerified: user.IsVerified,
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
+	}
+
+	return response, nil
 }
 
-func (usecase *userUsecase) CreateUser(ctx context.Context, req dto.UserRequestDTO) (res *domain.User, err error) {
+func (usecase *userUsecase) CreateUser(ctx context.Context, req dto.UserRequestDTO) (res *dto.UserResponseDTO, err error) {
 	if req.Name == "" {
 		return nil, errors.New("name are required")
 	}
@@ -92,10 +133,22 @@ func (usecase *userUsecase) CreateUser(ctx context.Context, req dto.UserRequestD
 		return nil, err
 	}
 
-	return user, nil
+	response := &dto.UserResponseDTO{
+		ID:         user.ID,
+		Name:       user.Name,
+		Telephone:  user.Telephone,
+		Email:      user.Email,
+		Role:       user.Role,
+		Saldo:      user.Saldo,
+		IsVerified: user.IsVerified,
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
+	}
+
+	return response, nil
 }
 
-func (usecase *userUsecase) UpdateUser(ctx context.Context, req dto.UserRequestDTO, id string) (res *domain.User, err error) {
+func (usecase *userUsecase) UpdateUser(ctx context.Context, req dto.UserRequestDTO, id string) (res *dto.UserResponseDTO, err error) {
 	user, err := usecase.userRepo.GetUserByID(ctx, id)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.UpdateUser: failed to get user by ID")
@@ -130,7 +183,19 @@ func (usecase *userUsecase) UpdateUser(ctx context.Context, req dto.UserRequestD
 		return nil, err
 	}
 
-	return user, nil
+	response := &dto.UserResponseDTO{
+		ID:         user.ID,
+		Name:       user.Name,
+		Telephone:  user.Telephone,
+		Email:      user.Email,
+		Role:       user.Role,
+		Saldo:      user.Saldo,
+		IsVerified: user.IsVerified,
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
+	}
+
+	return response, nil
 }
 
 func (usecase *userUsecase) DeleteUser(ctx context.Context, id string) error {

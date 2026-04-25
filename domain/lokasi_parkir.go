@@ -29,11 +29,11 @@ type (
 	}
 
 	LokasiParkirUsecase interface {
-		CreateLokasiParkir(ctx context.Context, req *dto.LokasiParkirRequestDTO) (res *LokasiParkir, err error)
-		GetAllLokasiParkir(ctx context.Context) ([]*LokasiParkir, error)
-		GetLokasiParkirByID(ctx context.Context, id string) (*LokasiParkir, error)
-		GetLokasiParkirByPetugasID(ctx context.Context, petugasID string) (*LokasiParkir, error)
-		UpdateLokasiParkir(ctx context.Context, req dto.LokasiParkirRequestDTO, id string) (res *LokasiParkir, err error)
+		CreateLokasiParkir(ctx context.Context, req *dto.LokasiParkirRequestDTO) (res *dto.LokasiParkirResponseDTO, err error)
+		GetAllLokasiParkir(ctx context.Context) ([]*dto.LokasiParkirResponseDTO, error)
+		GetLokasiParkirByID(ctx context.Context, id string) (*dto.LokasiParkirResponseDTO, error)
+		GetLokasiParkirByPetugasID(ctx context.Context, petugasID string) (*dto.LokasiParkirResponseDTO, error)
+		UpdateLokasiParkir(ctx context.Context, req dto.LokasiParkirRequestDTO, id string) (res *dto.LokasiParkirResponseDTO, err error)
 		DeleteLokasiParkir(ctx context.Context, id string) error
 	}
 

@@ -67,3 +67,18 @@ func (repo *qrSessionRepository) RevokeQRSession(ctx context.Context, id string)
 	}
 	return err
 }
+
+func (repo *qrSessionRepository) GetQRSessionByPayload(ctx context.Context, payload string) (*domain.QRSession, error) {
+	query := `SELECT id, lokasi_id, petugas_id, payload, hmac, expires_at, is_revoked FROM qr_sessions WHERE payload = $1 AND is_revoked = false AND expires_at > NOW()`
+	row := repo.db.QueryRowContext(ctx, query, payload)
+	var session domain.QRSession
+	err := row.Scan(&session.ID, &session.LocationID, &session.PetugasID, &session.Payload, &session.HMAC, &session.ExpiresAt, &session.IsRevoked)
+	if err == sql.ErrNoRows {
+		logrus.WithError(err).Info("repo.GetQRSessionByPayload: no QR session found for payload")
+		return nil, nil
+	} else if err != nil {
+		logrus.WithError(err).Error("repo.GetQRSessionByPayload: failed to get QR session by payload")
+		return nil, err
+	}
+	return &session, nil
+}

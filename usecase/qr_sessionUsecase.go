@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -87,9 +88,20 @@ func (usecase *qrSessionUsecase) CreateQRSession(ctx context.Context, petugasID 
 
 func (usecase *qrSessionUsecase) GetActiveQRByPetugasID(ctx context.Context, petugasID string) (res *dto.QRSessionResponseDTO, err error) {
 	data, err := usecase.qrSessionRepo.GetActiveQRByPetugasID(ctx, petugasID)
+
+	if err == sql.ErrNoRows {
+		logrus.Info("usecase.GetActiveQRByPetugasID: no active QR session found for petugas ID")
+		return nil, nil
+	}
+
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetActiveQRByPetugasID: failed to get active QR session by petugas ID")
 		return nil, err
+	}
+
+	if data == nil {
+		logrus.Info("usecase.GetActiveQRByPetugasID: no active QR session found for petugas ID")
+		return nil, nil
 	}
 
 	response := &dto.QRSessionResponseDTO{
@@ -107,9 +119,20 @@ func (usecase *qrSessionUsecase) GetActiveQRByPetugasID(ctx context.Context, pet
 
 func (usecase *qrSessionUsecase) GetLokasiByPetugasID(ctx context.Context, petugasID string) (string, error) {
 	data, err := usecase.qrSessionRepo.GetLokasiByPetugasID(ctx, petugasID)
+
+	if err == sql.ErrNoRows {
+		logrus.Info("usecase.GetLokasiByPetugasID: no lokasi found for petugas ID")
+		return "", errors.New("lokasi not found")
+	}
+
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetLokasiByPetugasID: failed to get lokasi by petugas ID")
 		return "", err
+	}
+
+	if data == "" {
+		logrus.Info("usecase.GetLokasiByPetugasID: no lokasi found for petugas ID")
+		return "", errors.New("lokasi not found")
 	}
 
 	return data, nil
@@ -128,4 +151,40 @@ func (usecase *qrSessionUsecase) RevokeQRSession(ctx context.Context, id string)
 	}
 
 	return nil
+}
+
+func (usecase *qrSessionUsecase) GetQRSessionByPayload(ctx context.Context, payload string) (*dto.QRSessionResponseDTO, error) {
+	if payload == "" {
+		logrus.Error("usecase.GetQRSessionByPayload: payload is required")
+		return nil, errors.New("payload is required")
+	}
+
+	qrSession, err := usecase.qrSessionRepo.GetQRSessionByPayload(ctx, payload)
+
+	if err == sql.ErrNoRows {
+		logrus.Info("usecase.GetQRSessionByPayload: no QR session found for payload")
+		return nil, nil
+	}
+
+	if err != nil {
+		logrus.WithError(err).Error("usecase.GetQRSessionByPayload: failed to get QR session by payload")
+		return nil, err
+	}
+
+	if qrSession == nil {
+		logrus.Info("usecase.GetQRSessionByPayload: no QR session found for payload")
+		return nil, nil
+	}
+
+	response := &dto.QRSessionResponseDTO{
+		ID:         qrSession.ID,
+		LocationID: qrSession.LocationID,
+		PetugasID:  qrSession.PetugasID,
+		Payload:    qrSession.Payload,
+		HMAC:       qrSession.HMAC,
+		ExpiresAt:  qrSession.ExpiresAt,
+		IsRevoked:  qrSession.IsRevoked,
+	}
+
+	return response, nil
 }

@@ -1,0 +1,51 @@
+-- +seeder
+INSERT INTO users (id, name, telephone, email, password, role, saldo, is_verified, created_at, updated_at) VALUES
+(
+    'a0000000-0000-0000-0000-000000000001',
+    'admin',
+    '081234567890',
+    'admin@mail.com',
+    '$2a$12$ftIN1vhwvUu0WO9zQYVMnO4WIH4xk0Hc9PuCKWKrmTyr/TEzjf2V.',
+    'superadmin',
+    0,
+    false,
+    NOW(),
+    NOW()
+),
+(
+    'a0000000-0000-0000-0000-000000000002',
+    'pengguna',
+    '081234567891',
+    'pengguna@mail.com',
+    '$2a$12$ftIN1vhwvUu0WO9zQYVMnO4WIH4xk0Hc9PuCKWKrmTyr/TEzjf2V.',
+    'pengguna',
+    0,
+    false,
+    NOW(),
+    NOW()
+),
+(
+    'a0000000-0000-0000-0000-000000000003',
+    'petugas',
+    '081234567892',
+    'petugas@mail.com',
+    '$2a$12$ftIN1vhwvUu0WO9zQYVMnO4WIH4xk0Hc9PuCKWKrmTyr/TEzjf2V.',
+    'petugas',
+    0,
+    false,
+    NOW(),
+    NOW()
+),
+(
+    'a0000000-0000-0000-0000-000000000004',
+    'dishub',
+    '081234567893',
+    'dishub@mail.com',
+    '$2a$12$ftIN1vhwvUu0WO9zQYVMnO4WIH4xk0Hc9PuCKWKrmTyr/TEzjf2V.',
+    'dishub',
+    0,
+    false,
+    NOW(),
+    NOW()
+)
+ON CONFLICT (id) DO NOTHING;

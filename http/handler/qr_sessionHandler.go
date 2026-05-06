@@ -46,7 +46,7 @@ func (handler *qrSessionHandler) CreateQRSession(c *gin.Context) {
 		PetugasID:  qrSession.PetugasID,
 		Payload:    qrSession.Payload,
 		HMAC:       qrSession.HMAC,
-		ExpiresAt:  qrSession.ExpiresAt,
+		ExpiredAt:  qrSession.ExpiredAt,
 		IsRevoked:  qrSession.IsRevoked,
 	}
 

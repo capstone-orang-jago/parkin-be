@@ -63,7 +63,7 @@ func (usecase *qrSessionUsecase) CreateQRSession(ctx context.Context, petugasID 
 		PetugasID:  petugasID,
 		Payload:    payload,
 		HMAC:       signature,
-		ExpiresAt:  time.Now().Add(5 * time.Minute),
+		ExpiredAt:  time.Now().Add(5 * time.Minute),
 		IsRevoked:  false,
 	}
 
@@ -79,7 +79,7 @@ func (usecase *qrSessionUsecase) CreateQRSession(ctx context.Context, petugasID 
 		PetugasID:  qrSession.PetugasID,
 		Payload:    qrSession.Payload,
 		HMAC:       qrSession.HMAC,
-		ExpiresAt:  qrSession.ExpiresAt,
+		ExpiredAt:  qrSession.ExpiredAt,
 		IsRevoked:  qrSession.IsRevoked,
 	}
 
@@ -110,7 +110,7 @@ func (usecase *qrSessionUsecase) GetActiveQRByPetugasID(ctx context.Context, pet
 		PetugasID:  data.PetugasID,
 		Payload:    data.Payload,
 		HMAC:       data.HMAC,
-		ExpiresAt:  data.ExpiresAt,
+		ExpiredAt:  data.ExpiredAt,
 		IsRevoked:  data.IsRevoked,
 	}
 
@@ -182,7 +182,7 @@ func (usecase *qrSessionUsecase) GetQRSessionByPayload(ctx context.Context, payl
 		PetugasID:  qrSession.PetugasID,
 		Payload:    qrSession.Payload,
 		HMAC:       qrSession.HMAC,
-		ExpiresAt:  qrSession.ExpiresAt,
+		ExpiredAt:  qrSession.ExpiredAt,
 		IsRevoked:  qrSession.IsRevoked,
 	}
 

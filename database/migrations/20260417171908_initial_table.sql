@@ -59,7 +59,7 @@ CREATE TABLE qr_sessions (
     petugas_id  UUID NOT NULL REFERENCES users(id),
     payload     TEXT NOT NULL,
     hmac   VARCHAR(64) NOT NULL,
-    expires_at  TIMESTAMPTZ NOT NULL,
+    expired_at  TIMESTAMPTZ NOT NULL,
     is_revoked  BOOLEAN NOT NULL DEFAULT FALSE,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

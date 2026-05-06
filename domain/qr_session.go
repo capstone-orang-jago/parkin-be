@@ -14,7 +14,7 @@ type QRSession struct {
 	PetugasID  string
 	Payload    string
 	HMAC       string
-	ExpiresAt  time.Time
+	ExpiredAt  time.Time
 	IsRevoked  bool
 }
 

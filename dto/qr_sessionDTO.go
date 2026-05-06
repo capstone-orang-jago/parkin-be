@@ -8,6 +8,6 @@ type QRSessionResponseDTO struct {
 	PetugasID  string    `json:"petugas_id"`
 	Payload    string    `json:"payload"`
 	HMAC       string    `json:"hmac"`
-	ExpiresAt  time.Time `json:"expires_at"`
+	ExpiredAt  time.Time `json:"expired_at"`
 	IsRevoked  bool      `json:"is_revoked"`
 }

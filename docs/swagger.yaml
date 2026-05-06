@@ -2,7 +2,7 @@ basePath: /api/v1
 definitions:
   domain.Auth:
     properties:
-      expiresAt:
+      expiredAt:
         type: string
       id:
         type: string
@@ -65,7 +65,7 @@ definitions:
     type: object
   dto.QRSessionResponseDTO:
     properties:
-      expires_at:
+      expired_at:
         type: string
       hmac:
         type: string

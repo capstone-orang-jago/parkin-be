@@ -70,7 +70,7 @@ func (usecase *authUsecase) Login(ctx context.Context, req dto.LoginRequestDTO) 
 	auth := &domain.Auth{
 		UserID:           user.ID,
 		RefreshTokenHash: hashedToken,
-		ExpiresAt:        time.Now().Add(time.Hour * 24 * 30),
+		ExpiredAt:        time.Now().Add(time.Hour * 24 * 30),
 	}
 
 	if err = usecase.authRepo.CreateRefreshToken(ctx, auth); err != nil {
@@ -116,7 +116,7 @@ func (usecase *authUsecase) RefreshToken(ctx context.Context, req dto.RefreshTok
 		return nil, errors.New("user not found")
 	}
 
-	if time.Now().After(auth.ExpiresAt) {
+	if time.Now().After(auth.ExpiredAt) {
 		logrus.Error("usecase.RefreshToken: refresh token expired")
 		return nil, errors.New("refresh token expired")
 	}
@@ -144,7 +144,7 @@ func (usecase *authUsecase) RefreshToken(ctx context.Context, req dto.RefreshTok
 	newAuth := &domain.Auth{
 		UserID:           auth.UserID,
 		RefreshTokenHash: newHashedToken,
-		ExpiresAt:        time.Now().Add(time.Hour * 24 * 30),
+		ExpiredAt:        time.Now().Add(time.Hour * 24 * 30),
 	}
 
 	err = usecase.authRepo.CreateRefreshToken(ctx, newAuth)

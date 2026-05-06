@@ -12,7 +12,7 @@ type Auth struct {
 	ID               string
 	UserID           string
 	RefreshTokenHash string
-	ExpiresAt        time.Time
+	ExpiredAt        time.Time
 }
 
 type (

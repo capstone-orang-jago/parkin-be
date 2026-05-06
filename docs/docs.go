@@ -988,7 +988,7 @@ const docTemplate = `{
         "domain.Auth": {
             "type": "object",
             "properties": {
-                "expiresAt": {
+                "expiredAt": {
                     "type": "string"
                 },
                 "id": {
@@ -1085,7 +1085,7 @@ const docTemplate = `{
         "dto.QRSessionResponseDTO": {
             "type": "object",
             "properties": {
-                "expires_at": {
+                "expired_at": {
                     "type": "string"
                 },
                 "hmac": {

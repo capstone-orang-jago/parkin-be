@@ -982,7 +982,7 @@
         "domain.Auth": {
             "type": "object",
             "properties": {
-                "expiresAt": {
+                "expiredAt": {
                     "type": "string"
                 },
                 "id": {
@@ -1079,7 +1079,7 @@
         "dto.QRSessionResponseDTO": {
             "type": "object",
             "properties": {
-                "expires_at": {
+                "expired_at": {
                     "type": "string"
                 },
                 "hmac": {

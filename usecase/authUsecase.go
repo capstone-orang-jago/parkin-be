@@ -13,14 +13,16 @@ import (
 )
 
 type authUsecase struct {
-	authRepo domain.AuthRepository
-	userRepo domain.UserRepository
+	authRepo   domain.AuthRepository
+	userRepo   domain.UserRepository
+	transactor helpers.Transactor
 }
 
-func NewAuthUsecase(authRepo domain.AuthRepository, userRepo domain.UserRepository) domain.AuthUsecase {
+func NewAuthUsecase(authRepo domain.AuthRepository, userRepo domain.UserRepository, transactor helpers.Transactor) domain.AuthUsecase {
 	return &authUsecase{
-		authRepo: authRepo,
-		userRepo: userRepo,
+		authRepo:   authRepo,
+		userRepo:   userRepo,
+		transactor: transactor,
 	}
 }
 
@@ -147,14 +149,22 @@ func (usecase *authUsecase) RefreshToken(ctx context.Context, req dto.RefreshTok
 		ExpiredAt:        time.Now().Add(time.Hour * 24 * 30),
 	}
 
-	err = usecase.authRepo.CreateRefreshToken(ctx, newAuth)
-	if err != nil {
-		return nil, errors.New("failed to save new refresh token to database")
-	}
+	err = usecase.transactor.WithTransaction(ctx, func(txCtx context.Context) error {
+		err := usecase.authRepo.CreateRefreshToken(txCtx, newAuth)
+		if err != nil {
+			return errors.New("failed to save new refresh token to database")
+		}
 
-	err = usecase.authRepo.DeleteRefreshToken(ctx, oldHashedToken)
+		err = usecase.authRepo.DeleteRefreshToken(txCtx, oldHashedToken)
+		if err != nil {
+			return errors.New("failed to delete old refresh token from database")
+		}
+
+		return nil
+	})
 	if err != nil {
-		return nil, errors.New("failed to delete old refresh token from database")
+		logrus.WithError(err).Error("usecase.RefreshToken: failed to refresh token")
+		return nil, err
 	}
 
 	data := &dto.RefreshTokenResponseDTO{

@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/capstone-orang-jago/parkin-be/config"
 	"github.com/capstone-orang-jago/parkin-be/domain"
+	"github.com/capstone-orang-jago/parkin-be/helpers"
 	"github.com/capstone-orang-jago/parkin-be/http/handler"
 	"github.com/capstone-orang-jago/parkin-be/repository"
 	"github.com/capstone-orang-jago/parkin-be/usecase"
@@ -29,6 +30,7 @@ type App struct {
 func InitApp(cfg *config.Config) App {
 
 	db := config.DB
+	transactor := helpers.NewTransactor(db)
 
 	userRepo := repository.NewUserRepository(db)
 	authRepo := repository.NewAuthRepository(db)
@@ -36,7 +38,7 @@ func InitApp(cfg *config.Config) App {
 	qrSessionRepo := repository.NewQRSessionRepository(db)
 
 	userUsecase := usecase.NewUserUsecase(userRepo)
-	authUsecase := usecase.NewAuthUsecase(authRepo, userRepo)
+	authUsecase := usecase.NewAuthUsecase(authRepo, userRepo, transactor)
 	lokasiParkirUsecase := usecase.NewLokasiParkirUsecase(lokasiParkirRepo)
 	qrSessionUsecase := usecase.NewQRSessionUsecase(qrSessionRepo, lokasiParkirUsecase)
 

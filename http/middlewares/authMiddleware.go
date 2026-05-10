@@ -17,6 +17,7 @@ func AuthMiddleware() gin.HandlerFunc {
 				Code:    401,
 				Message: "authorization header is required",
 			})
+			c.Abort()
 			return
 		}
 

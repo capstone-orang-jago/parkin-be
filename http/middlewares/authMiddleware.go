@@ -53,7 +53,18 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		role, ok := token["role"].(string)
+		if !ok {
+			helpers.Response(c, domain.HttpResponse{
+				Code:    401,
+				Message: "invalid token claims",
+			})
+			c.Abort()
+			return
+		}
+
 		c.Set("sub", userID)
+		c.Set("role", role)
 		c.Next()
 	}
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/capstone-orang-jago/parkin-be/config"
 	"github.com/capstone-orang-jago/parkin-be/domain"
 	"github.com/capstone-orang-jago/parkin-be/dto"
+	"github.com/capstone-orang-jago/parkin-be/helpers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,14 +23,16 @@ type transaksiParkirUsecase struct {
 	userUsecase         domain.UserUsecase
 	qrSessionUsecase    domain.QRSessionUsecase
 	lokasiParkirUsecase domain.LokasiParkirUsecase
+	transactor          helpers.Transactor
 }
 
-func NewTransaksiParkirUsecase(transaksiParkirRepo domain.TransaksiParkirRepository, userUsecase domain.UserUsecase, qrSessionUsecase domain.QRSessionUsecase, lokasiParkirUsecase domain.LokasiParkirUsecase) domain.TransaksiParkirUsecase {
+func NewTransaksiParkirUsecase(transaksiParkirRepo domain.TransaksiParkirRepository, userUsecase domain.UserUsecase, qrSessionUsecase domain.QRSessionUsecase, lokasiParkirUsecase domain.LokasiParkirUsecase, transactor helpers.Transactor) domain.TransaksiParkirUsecase {
 	return &transaksiParkirUsecase{
 		transaksiParkirRepo: transaksiParkirRepo,
 		userUsecase:         userUsecase,
 		qrSessionUsecase:    qrSessionUsecase,
 		lokasiParkirUsecase: lokasiParkirUsecase,
+		transactor:          transactor,
 	}
 }
 
@@ -143,21 +146,28 @@ func (usecase *transaksiParkirUsecase) CreateTransaksiParkir(ctx context.Context
 		Status:         "sukses",
 	}
 
-	err = usecase.transaksiParkirRepo.CreateTransaksiParkir(ctx, transaksiParkir)
-	if err != nil {
-		logrus.WithError(err).Error("usecase.CreateTransaksiParkir: failed to create transaksi parkir")
-		return nil, err
-	}
+	err = usecase.transactor.WithTransaction(ctx, func(txCtx context.Context) error {
+		err = usecase.transaksiParkirRepo.CreateTransaksiParkir(txCtx, transaksiParkir)
+		if err != nil {
+			logrus.WithError(err).Error("usecase.CreateTransaksiParkir: failed to create transaksi parkir")
+			return err
+		}
 
-	err = usecase.userUsecase.DeductUserSaldo(ctx, user.ID, tarif)
-	if err != nil {
-		logrus.WithError(err).Error("usecase.CreateTransaksiParkir: failed to update user saldo")
-		return nil, err
-	}
+		err = usecase.userUsecase.DeductUserSaldo(txCtx, user.ID, tarif)
+		if err != nil {
+			logrus.WithError(err).Error("usecase.CreateTransaksiParkir: failed to update user saldo")
+			return err
+		}
 
-	err = usecase.qrSessionUsecase.RevokeQRSession(ctx, qrSession.ID)
+		err = usecase.qrSessionUsecase.RevokeQRSession(txCtx, qrSession.ID)
+		if err != nil {
+			logrus.WithError(err).Error("usecase.CreateTransaksiParkir: failed to revoke QR session")
+			return err
+		}
+		return nil
+	})
 	if err != nil {
-		logrus.WithError(err).Error("usecase.CreateTransaksiParkir: failed to revoke QR session")
+		logrus.WithError(err).Error("usecase.CreateTransaksiParkir: transaction failed")
 		return nil, err
 	}
 

@@ -40,7 +40,7 @@ func InitApp(cfg *config.Config) App {
 	userUsecase := usecase.NewUserUsecase(userRepo)
 	authUsecase := usecase.NewAuthUsecase(authRepo, userRepo, transactor)
 	lokasiParkirUsecase := usecase.NewLokasiParkirUsecase(lokasiParkirRepo)
-	qrSessionUsecase := usecase.NewQRSessionUsecase(qrSessionRepo, lokasiParkirUsecase)
+	qrSessionUsecase := usecase.NewQRSessionUsecase(qrSessionRepo, lokasiParkirUsecase, transactor)
 
 	userHandler := handler.NewUserHandler(userUsecase)
 	authHandler := handler.NewAuthHandler(authUsecase, userUsecase)
@@ -48,7 +48,7 @@ func InitApp(cfg *config.Config) App {
 	qrSessionHandler := handler.NewQRSessionHandler(qrSessionUsecase)
 
 	transaksiParkirRepo := repository.NewTransaksiParkirRepository(db)
-	transaksiParkirUsecase := usecase.NewTransaksiParkirUsecase(transaksiParkirRepo, userUsecase, qrSessionUsecase, lokasiParkirUsecase)
+	transaksiParkirUsecase := usecase.NewTransaksiParkirUsecase(transaksiParkirRepo, userUsecase, qrSessionUsecase, lokasiParkirUsecase, transactor)
 	transaksiParkirHandler := handler.NewTransaksiParkirHandler(transaksiParkirUsecase)
 	return App{
 		UserHandler:               userHandler,

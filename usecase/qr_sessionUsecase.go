@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
-	"database/sql"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -13,74 +12,88 @@ import (
 	"github.com/capstone-orang-jago/parkin-be/config"
 	"github.com/capstone-orang-jago/parkin-be/domain"
 	"github.com/capstone-orang-jago/parkin-be/dto"
+	"github.com/capstone-orang-jago/parkin-be/helpers"
 	"github.com/sirupsen/logrus"
 )
 
 type qrSessionUsecase struct {
 	qrSessionRepo       domain.QRSessionRepository
 	parkirLokasiUsecase domain.LokasiParkirUsecase
+	transactor          helpers.Transactor
 }
 
-func NewQRSessionUsecase(qrSessionRepo domain.QRSessionRepository, parkirLokasi domain.LokasiParkirUsecase) domain.QRSessionUsecase {
+func NewQRSessionUsecase(qrSessionRepo domain.QRSessionRepository, parkirLokasi domain.LokasiParkirUsecase, transactor helpers.Transactor) domain.QRSessionUsecase {
 	return &qrSessionUsecase{
 		qrSessionRepo:       qrSessionRepo,
 		parkirLokasiUsecase: parkirLokasi,
+		transactor:          transactor,
 	}
 }
 
 func (usecase *qrSessionUsecase) CreateQRSession(ctx context.Context, petugasID string) (res *dto.QRSessionResponseDTO, err error) {
-	activeQR, err := usecase.GetActiveQRByPetugasID(ctx, petugasID)
-	if err != nil {
-		logrus.WithError(err).Error("usecase.CreateQRSession: failed to get active QR session by petugas ID")
-		return nil, err
-	}
+	var result *domain.QRSession
 
-	if activeQR != nil {
-		err = usecase.RevokeQRSession(ctx, activeQR.ID)
+	err = usecase.transactor.WithTransaction(ctx, func(txCtx context.Context) error {
+		activeQR, err := usecase.qrSessionRepo.GetActiveQRByPetugasID(txCtx, petugasID)
 		if err != nil {
-			logrus.WithError(err).Error("usecase.CreateQRSession: failed to revoke existing QR session")
-			return nil, err
+			logrus.WithError(err).Error("usecase.CreateQRSession: failed to get active QR session by petugas ID")
+			return err
 		}
-	}
 
-	lokasiParkir, err := usecase.parkirLokasiUsecase.GetLokasiParkirByPetugasID(ctx, petugasID)
+		if activeQR != nil {
+			err = usecase.RevokeQRSession(txCtx, activeQR.ID)
+			if err != nil {
+				logrus.WithError(err).Error("usecase.CreateQRSession: failed to revoke existing QR session")
+				return err
+			}
+		}
+
+		lokasiParkir, err := usecase.parkirLokasiUsecase.GetLokasiParkirByPetugasID(txCtx, petugasID)
+		if err != nil {
+			logrus.WithError(err).Error("usecase.CreateQRSession: failed to get lokasi by petugas ID")
+			return err
+		}
+
+		timestamp := time.Now().Unix()
+		message := fmt.Sprintf("parkin:%s:%s:%d", lokasiParkir.ID, petugasID, timestamp)
+
+		hmac := hmac.New(sha256.New, []byte(config.AppConfig.QR_SECRET_KEY))
+		hmac.Write([]byte(message))
+		signature := hex.EncodeToString(hmac.Sum(nil))
+
+		payload := fmt.Sprintf("%s:%s", message, signature)
+
+		qrSession := &domain.QRSession{
+			LocationID: lokasiParkir.ID,
+			PetugasID:  petugasID,
+			Payload:    payload,
+			HMAC:       signature,
+			ExpiredAt:  time.Now().Add(5 * time.Minute),
+			IsRevoked:  false,
+		}
+
+		err = usecase.qrSessionRepo.CreateQRSession(txCtx, qrSession)
+		if err != nil {
+			logrus.WithError(err).Error("usecase.CreateQRSession: failed to create QR session")
+			return err
+		}
+
+		result = qrSession
+		return nil
+	})
 	if err != nil {
-		logrus.WithError(err).Error("usecase.CreateQRSession: failed to get lokasi by petugas ID")
-		return nil, err
-	}
-
-	timestamp := time.Now().Unix()
-	message := fmt.Sprintf("parkin:%s:%s:%d", lokasiParkir.ID, petugasID, timestamp)
-
-	hmac := hmac.New(sha256.New, []byte(config.AppConfig.QR_SECRET_KEY))
-	hmac.Write([]byte(message))
-	signature := hex.EncodeToString(hmac.Sum(nil))
-
-	payload := fmt.Sprintf("%s:%s", message, signature)
-
-	qrSession := &domain.QRSession{
-		LocationID: lokasiParkir.ID,
-		PetugasID:  petugasID,
-		Payload:    payload,
-		HMAC:       signature,
-		ExpiredAt:  time.Now().Add(5 * time.Minute),
-		IsRevoked:  false,
-	}
-
-	err = usecase.qrSessionRepo.CreateQRSession(ctx, qrSession)
-	if err != nil {
-		logrus.WithError(err).Error("usecase.CreateQRSession: failed to create QR session")
+		logrus.WithError(err).Error("usecase.CreateQRSession: transaction failed")
 		return nil, err
 	}
 
 	response := &dto.QRSessionResponseDTO{
-		ID:         qrSession.ID,
-		LocationID: qrSession.LocationID,
-		PetugasID:  qrSession.PetugasID,
-		Payload:    qrSession.Payload,
-		HMAC:       qrSession.HMAC,
-		ExpiredAt:  qrSession.ExpiredAt,
-		IsRevoked:  qrSession.IsRevoked,
+		ID:         result.ID,
+		LocationID: result.LocationID,
+		PetugasID:  result.PetugasID,
+		Payload:    result.Payload,
+		HMAC:       result.HMAC,
+		ExpiredAt:  result.ExpiredAt,
+		IsRevoked:  result.IsRevoked,
 	}
 
 	return response, nil
@@ -88,11 +101,6 @@ func (usecase *qrSessionUsecase) CreateQRSession(ctx context.Context, petugasID 
 
 func (usecase *qrSessionUsecase) GetActiveQRByPetugasID(ctx context.Context, petugasID string) (res *dto.QRSessionResponseDTO, err error) {
 	data, err := usecase.qrSessionRepo.GetActiveQRByPetugasID(ctx, petugasID)
-
-	if err == sql.ErrNoRows {
-		logrus.Info("usecase.GetActiveQRByPetugasID: no active QR session found for petugas ID")
-		return nil, nil
-	}
 
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetActiveQRByPetugasID: failed to get active QR session by petugas ID")
@@ -119,11 +127,6 @@ func (usecase *qrSessionUsecase) GetActiveQRByPetugasID(ctx context.Context, pet
 
 func (usecase *qrSessionUsecase) GetLokasiByPetugasID(ctx context.Context, petugasID string) (string, error) {
 	data, err := usecase.qrSessionRepo.GetLokasiByPetugasID(ctx, petugasID)
-
-	if err == sql.ErrNoRows {
-		logrus.Info("usecase.GetLokasiByPetugasID: no lokasi found for petugas ID")
-		return "", errors.New("lokasi not found")
-	}
 
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetLokasiByPetugasID: failed to get lokasi by petugas ID")
@@ -160,11 +163,6 @@ func (usecase *qrSessionUsecase) GetQRSessionByPayload(ctx context.Context, payl
 	}
 
 	qrSession, err := usecase.qrSessionRepo.GetQRSessionByPayload(ctx, payload)
-
-	if err == sql.ErrNoRows {
-		logrus.Info("usecase.GetQRSessionByPayload: no QR session found for payload")
-		return nil, nil
-	}
 
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetQRSessionByPayload: failed to get QR session by payload")

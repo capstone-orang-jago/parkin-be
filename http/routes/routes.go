@@ -55,7 +55,7 @@ func RegisterRoutes(application app.App) http.Handler {
 	{
 		auth.POST("/register", application.AuthHandler.Register)
 		auth.POST("/verify-register", application.AuthHandler.VerifyRegister)
-		auth.POST("/send-otp", application.OtpCodeHandler.ResendOtpCode)
+		auth.POST("/resend-otp", application.OtpCodeHandler.ResendOtpCode)
 
 		auth.POST("/login", application.AuthHandler.Login)
 		auth.POST("/refresh", application.AuthHandler.RefreshToken)

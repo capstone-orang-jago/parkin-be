@@ -326,6 +326,35 @@ paths:
       summary: Register a new user
       tags:
       - auth
+  /auth/resend-otp:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: OTP Code Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OtpCodeRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      summary: Resend OTP code to user's telephone
+      tags:
+      - auth
   /auth/verify-register:
     post:
       consumes:
@@ -568,35 +597,6 @@ paths:
       summary: Create a new QR session for petugas
       tags:
       - qr-session
-  /otp/resend:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: OTP Code Request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.OtpCodeRequestDTO'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-      summary: Resend OTP code to user's telephone
-      tags:
-      - otp
   /transaksi-parkir:
     post:
       consumes:

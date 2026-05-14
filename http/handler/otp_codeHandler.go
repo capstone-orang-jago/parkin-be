@@ -40,7 +40,7 @@ func (h *otpCodeHandler) ResendOtpCode(c *gin.Context) {
 	if err := h.otpCodeUsecase.SendOtpCode(c.Request.Context(), req.Telephone); err != nil {
 		helpers.Response(c, domain.HttpResponse{
 			Code:    500,
-			Message: "failed to send OTP code",
+			Message: "failed to send OTP code: " + err.Error(),
 		})
 		return
 	}

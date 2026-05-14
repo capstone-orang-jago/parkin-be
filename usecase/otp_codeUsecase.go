@@ -31,17 +31,21 @@ func (usecase *otpCodeUsecase) SendOtpCode(ctx context.Context, telephone string
 	}
 	if user == nil {
 		logrus.WithField("telephone", telephone).Info("usecase.SendOtpCode: no user found for telephone")
-		return err
+		return errors.New("usecase.SendOtpCode: user not found")
 	}
 
 	lastOtp, err := usecase.otpCodeRepo.GetOtpCodeByLastActive(ctx, user.ID)
-	if err != nil && lastOtp != nil {
+	if err != nil {
+		logrus.WithError(err).Error("usecase.SendOtpCode: failed to get last active OTP code")
+		return err
+	}
+	if lastOtp != nil {
 		remainingTime := time.Since(lastOtp.CreatedAt)
 
 		if remainingTime < 1*time.Minute {
 			secondsLeft := int(60 - remainingTime.Seconds())
 			logrus.WithField("userID", user.ID).Infof("usecase.SendOtpCode: OTP code already sent, please wait %d seconds before requesting a new one", secondsLeft)
-			return err
+			return errors.New("usecase.SendOtpCode: wait until the previous OTP code expires")
 		}
 
 		if !lastOtp.IsUsed {

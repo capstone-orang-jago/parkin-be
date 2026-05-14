@@ -27,13 +27,13 @@ func NewAuthHandler(authUsecase domain.AuthUsecase, userUsecase domain.UserUseca
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param request body dto.UserRequestDTO true "User Request"
-// @Success 201 {object} dto.UserResponseDTO
+// @Param request body dto.RegisterRequestDTO true "Register Request"
+// @Success 201 {object} dto.RegisterResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
 // @Router /auth/register [post]
 func (handler *authHandler) Register(c *gin.Context) {
-	var req dto.UserRequestDTO
+	var req dto.RegisterRequestDTO
 	if err := helpers.DecodeJSON(c, &req); err != nil {
 		helpers.Response(c, domain.HttpResponse{
 			Code:    http.StatusBadRequest,
@@ -42,9 +42,9 @@ func (handler *authHandler) Register(c *gin.Context) {
 		return
 	}
 
-	user, err := handler.userUsecase.CreateUser(c.Request.Context(), req)
+	user, err := handler.authUsecase.Register(c.Request.Context(), req)
 	if err != nil {
-		logrus.WithError(err).Error("handler.CreateUser: failed to create user")
+		logrus.WithError(err).Error("handler.Register: failed to register user")
 		helpers.Response(c, domain.HttpResponse{
 			Code:    http.StatusInternalServerError,
 			Message: err.Error(),
@@ -52,22 +52,54 @@ func (handler *authHandler) Register(c *gin.Context) {
 		return
 	}
 
-	response := dto.UserResponseDTO{
-		ID:         user.ID,
-		Name:       user.Name,
-		Telephone:  user.Telephone,
-		Email:      user.Email,
-		Role:       user.Role,
-		Saldo:      user.Saldo,
-		IsVerified: user.IsVerified,
-		CreatedAt:  user.CreatedAt,
-		UpdatedAt:  user.UpdatedAt,
+	response := dto.RegisterResponseDTO{
+		UserID:    user.UserID,
+		Telephone: user.Telephone,
+		OTPSentAt: user.OTPSentAt,
 	}
 
 	helpers.Response(c, domain.HttpResponse{
 		Code:    http.StatusCreated,
 		Message: "user created successfully",
 		Data:    response,
+	})
+}
+
+// VerifyRegister godoc
+// @Summary Verify user registration
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body dto.VerifyOtpCodeRequestDTO true "Verify OTP Code Request"
+// @Success 200 {object} domain.Auth
+// @Failure 400 {object} domain.HttpResponse
+// @Failure 401 {object} domain.HttpResponse
+// @Failure 500 {object} domain.HttpResponse
+// @Router /auth/verify-register [post]
+func (handler *authHandler) VerifyRegister(c *gin.Context) {
+	var req dto.VerifyOtpCodeRequestDTO
+	if err := helpers.DecodeJSON(c, &req); err != nil {
+		helpers.Response(c, domain.HttpResponse{
+			Code:    http.StatusBadRequest,
+			Message: "invalid request body",
+		})
+		return
+	}
+
+	res, err := handler.authUsecase.VerifyRegister(c.Request.Context(), req)
+	if err != nil {
+		logrus.WithError(err).Error("handler.VerifyRegister: failed to verify registration")
+		helpers.Response(c, domain.HttpResponse{
+			Code:    http.StatusUnauthorized,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	helpers.Response(c, domain.HttpResponse{
+		Code:    http.StatusOK,
+		Message: "registration verified successfully",
+		Data:    res,
 	})
 }
 

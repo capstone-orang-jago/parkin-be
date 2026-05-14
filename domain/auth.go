@@ -26,10 +26,13 @@ type (
 		Login(ctx context.Context, req dto.LoginRequestDTO) (res *dto.LoginResponseDTO, err error)
 		RefreshToken(ctx context.Context, req dto.RefreshTokenRequestDTO) (res *dto.RefreshTokenResponseDTO, err error)
 		Logout(ctx context.Context, userId, token string) error
+		Register(ctx context.Context, req dto.RegisterRequestDTO) (*dto.RegisterResponseDTO, error)
+		VerifyRegister(ctx context.Context, req dto.VerifyOtpCodeRequestDTO) (*dto.LoginResponseDTO, error)
 	}
 
 	AuthHandler interface {
 		Register(c *gin.Context)
+		VerifyRegister(c *gin.Context)
 		Login(c *gin.Context)
 		RefreshToken(c *gin.Context)
 		Logout(c *gin.Context)

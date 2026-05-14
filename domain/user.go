@@ -27,6 +27,7 @@ type (
 		GetAllUsers(ctx context.Context) ([]*User, error)
 		GetUserByID(ctx context.Context, id string) (*User, error)
 		GetUserByEmail(ctx context.Context, email string) (*User, error)
+		GetUserByTelephone(ctx context.Context, telephone string) (*User, error)
 		UpdateUser(ctx context.Context, user *User, id string) error
 		DeleteUser(ctx context.Context, id string) error
 		GetUserSaldo(ctx context.Context, id string) (int64, error)

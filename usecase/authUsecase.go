@@ -13,16 +13,18 @@ import (
 )
 
 type authUsecase struct {
-	authRepo   domain.AuthRepository
-	userRepo   domain.UserRepository
-	transactor helpers.Transactor
+	authRepo       domain.AuthRepository
+	userRepo       domain.UserRepository
+	transactor     helpers.Transactor
+	otpCodeUsecase domain.OtpCodeUsecase
 }
 
-func NewAuthUsecase(authRepo domain.AuthRepository, userRepo domain.UserRepository, transactor helpers.Transactor) domain.AuthUsecase {
+func NewAuthUsecase(authRepo domain.AuthRepository, userRepo domain.UserRepository, transactor helpers.Transactor, otpCodeUsecase domain.OtpCodeUsecase) domain.AuthUsecase {
 	return &authUsecase{
-		authRepo:   authRepo,
-		userRepo:   userRepo,
-		transactor: transactor,
+		authRepo:       authRepo,
+		userRepo:       userRepo,
+		transactor:     transactor,
+		otpCodeUsecase: otpCodeUsecase,
 	}
 }
 
@@ -44,9 +46,128 @@ func (usecase *authUsecase) Login(ctx context.Context, req dto.LoginRequestDTO) 
 		return nil, errors.New("invalid email or password")
 	}
 
+	if !user.IsVerified {
+		return nil, errors.New("telephone number not verified")
+	}
+
 	_, err = helpers.ComparePass(user.Password, req.Password)
 	if err != nil {
 		return nil, errors.New("invalid email or password")
+	}
+
+	refreshToken, err := helpers.GenerateRefreshToken()
+	if err != nil {
+		logrus.WithError(err).Error("usecase.Login: failed to generate refresh token")
+		return nil, errors.New("failed to generate refresh token")
+	}
+
+	hashedToken := helpers.HashToken(refreshToken)
+
+	accessToken, err := helpers.GenerateAccessToken(
+		user.ID,
+		user.Role,
+		user.Name,
+		config.AppConfig.JWTSecret,
+		time.Hour*2,
+	)
+	if err != nil {
+		logrus.WithError(err).Error("usecase.Login: failed to generate access token")
+		return nil, errors.New("failed to generate access token")
+	}
+
+	auth := &domain.Auth{
+		UserID:           user.ID,
+		RefreshTokenHash: hashedToken,
+		ExpiredAt:        time.Now().Add(time.Hour * 24 * 30),
+	}
+
+	if err = usecase.authRepo.CreateRefreshToken(ctx, auth); err != nil {
+		logrus.WithError(err).Error("usecase.Login: failed to save refresh token to database")
+		return nil, errors.New("failed to save refresh token to database")
+	}
+
+	res := &dto.LoginResponseDTO{
+		UserID:       user.ID,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}
+
+	return res, nil
+}
+
+func (usecase *authUsecase) Register(ctx context.Context, req dto.RegisterRequestDTO) (*dto.RegisterResponseDTO, error) {
+	if req.Name == "" || req.Telephone == "" || req.Password == "" || req.Email == "" {
+		logrus.Info("usecase.Register: incomplete registration data")
+		return nil, errors.New("all fields are required")
+	}
+
+	telephone := req.Telephone
+	if telephone[0] == '0' {
+		telephone = "62" + telephone[1:]
+	}
+
+	existingUser, _ := usecase.userRepo.GetUserByTelephone(ctx, telephone)
+	if existingUser != nil {
+		return nil, errors.New("user with this telephone already exists")
+	}
+
+	hashedPassword, err := helpers.HassPass(req.Password)
+	if err != nil {
+		return nil, errors.New("failed to hash password")
+	}
+
+	user := &domain.User{
+		Name:       req.Name,
+		Email:      req.Email,
+		Telephone:  telephone,
+		Password:   hashedPassword,
+		Saldo:      0,
+		Role:       "pengguna",
+		IsVerified: false,
+	}
+
+	err = usecase.userRepo.CreateUser(ctx, user)
+	if err != nil {
+		logrus.WithError(err).Error("usecase.Register: failed to create user")
+		return nil, err
+	}
+
+	err = usecase.otpCodeUsecase.SendOtpCode(ctx, user.Telephone)
+	if err != nil {
+		logrus.WithError(err).Error("usecase.Register: failed to send OTP code")
+		return nil, err
+	}
+
+	res := &dto.RegisterResponseDTO{
+		UserID:    user.ID,
+		Telephone: user.Telephone,
+		OTPSentAt: time.Now(),
+	}
+
+	return res, nil
+}
+
+func (usecase *authUsecase) VerifyRegister(ctx context.Context, req dto.VerifyOtpCodeRequestDTO) (*dto.LoginResponseDTO, error) {
+	isValid, err := usecase.otpCodeUsecase.VerifyOtpCode(ctx, req.Telephone, req.OTPCode)
+	if err != nil {
+		logrus.WithError(err).Error("usecase.VerifyRegister: failed to verify OTP code")
+		return nil, err
+	}
+	if !isValid {
+		logrus.WithField("telephone", req.Telephone).Info("usecase.VerifyRegister: invalid OTP code")
+		return nil, err
+	}
+
+	user, err := usecase.userRepo.GetUserByTelephone(ctx, req.Telephone)
+	if err != nil {
+		logrus.WithError(err).Error("usecase.VerifyRegister: failed to get user by telephone")
+		return nil, errors.New("failed to get user by telephone")
+	}
+
+	user.IsVerified = true
+	if err := usecase.userRepo.UpdateUser(ctx, user, user.ID); err != nil {
+		logrus.WithError(err).Error("usecase.VerifyRegister: failed to update user verification status")
+		return nil, errors.New("failed to update user verification status")
 	}
 
 	refreshToken, err := helpers.GenerateRefreshToken()

@@ -51,6 +51,17 @@ func RegisterRoutes(application app.App) http.Handler {
 	// PUBLIC ROUTES
 	v1.GET("/health", health)
 
+	auth := v1.Group("/auth")
+	{
+		auth.POST("/register", application.AuthHandler.Register)
+		auth.POST("/verify-register", application.AuthHandler.VerifyRegister)
+		auth.POST("/send-otp", application.OtpCodeHandler.ResendOtpCode)
+
+		auth.POST("/login", application.AuthHandler.Login)
+		auth.POST("/refresh", application.AuthHandler.RefreshToken)
+		auth.POST("/logout", middlewares.AuthMiddleware(), application.AuthHandler.Logout)
+	}
+
 	user := v1.Group("/users")
 	user.Use(middlewares.AuthMiddleware())
 	{
@@ -61,14 +72,6 @@ func RegisterRoutes(application app.App) http.Handler {
 		user.DELETE("/:id", application.UserHandler.DeleteUser)
 		user.GET("/me/saldo", application.UserHandler.GetUserSaldo)
 		user.PUT("/me/saldo", application.UserHandler.DeductUserSaldo)
-	}
-
-	auth := v1.Group("/auth")
-	{
-		auth.POST("/register", application.AuthHandler.Register)
-		auth.POST("/login", application.AuthHandler.Login)
-		auth.POST("/refresh", application.AuthHandler.RefreshToken)
-		auth.POST("/logout", middlewares.AuthMiddleware(), application.AuthHandler.Logout)
 	}
 
 	lokasiParkir := v1.Group("/lokasi-parkir")

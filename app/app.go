@@ -25,9 +25,12 @@ type App struct {
 	TransaksiParkirRepository domain.TransaksiParkirRepository
 	TransaksiParkirUsecase    domain.TransaksiParkirUsecase
 	TransaksiParkirHandler    domain.TransaksiParkirHandler
+	OtpCodeHandler            domain.OtpCodeHandler
+	OtpCodeUsecase            domain.OtpCodeUsecase
+	OtpCodeRepository         domain.OtpCodeRepository
 }
 
-func InitApp(cfg *config.Config) App {
+func InitApp(cfg *config.Config, waService domain.WaService) App {
 
 	db := config.DB
 	transactor := helpers.NewTransactor(db)
@@ -36,13 +39,16 @@ func InitApp(cfg *config.Config) App {
 	authRepo := repository.NewAuthRepository(db)
 	lokasiParkirRepo := repository.NewLokasiParkirRepository(db)
 	qrSessionRepo := repository.NewQRSessionRepository(db)
+	otpCodeRepo := repository.NewOtpCodeRepository(db)
 
 	userUsecase := usecase.NewUserUsecase(userRepo)
-	authUsecase := usecase.NewAuthUsecase(authRepo, userRepo, transactor)
+	otpCodeUsecase := usecase.NewOtpCodeUsecase(otpCodeRepo, userRepo, waService)
+	authUsecase := usecase.NewAuthUsecase(authRepo, userRepo, transactor, otpCodeUsecase)
 	lokasiParkirUsecase := usecase.NewLokasiParkirUsecase(lokasiParkirRepo)
 	qrSessionUsecase := usecase.NewQRSessionUsecase(qrSessionRepo, lokasiParkirUsecase, transactor)
 
 	userHandler := handler.NewUserHandler(userUsecase)
+	otpCodeHandler := handler.NewOtpCodeHandler(otpCodeUsecase)
 	authHandler := handler.NewAuthHandler(authUsecase, userUsecase)
 	lokasiParkirHandler := handler.NewLokasiParkirHandler(lokasiParkirUsecase)
 	qrSessionHandler := handler.NewQRSessionHandler(qrSessionUsecase)
@@ -57,6 +63,9 @@ func InitApp(cfg *config.Config) App {
 		AuthHandler:               authHandler,
 		AuthUsecase:               authUsecase,
 		AuthRepository:            authRepo,
+		OtpCodeHandler:            otpCodeHandler,
+		OtpCodeUsecase:            otpCodeUsecase,
+		OtpCodeRepository:         otpCodeRepo,
 		LokasiParkirRepository:    lokasiParkirRepo,
 		LokasiParkirUsecase:       lokasiParkirUsecase,
 		LokasiParkirHandler:       lokasiParkirHandler,

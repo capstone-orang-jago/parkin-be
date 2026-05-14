@@ -187,12 +187,12 @@ const docTemplate = `{
                 "summary": "Register a new user",
                 "parameters": [
                     {
-                        "description": "User Request",
+                        "description": "Register Request",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UserRequestDTO"
+                            "$ref": "#/definitions/dto.RegisterRequestDTO"
                         }
                     }
                 ],
@@ -200,11 +200,62 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.UserResponseDTO"
+                            "$ref": "#/definitions/dto.RegisterResponseDTO"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/verify-register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Verify user registration",
+                "parameters": [
+                    {
+                        "description": "Verify OTP Code Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.VerifyOtpCodeRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Auth"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/domain.HttpResponse"
                         }
@@ -535,6 +586,51 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/dto.QRSessionResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/otp/resend": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "otp"
+                ],
+                "summary": "Resend OTP code to user's telephone",
+                "parameters": [
+                    {
+                        "description": "OTP Code Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.OtpCodeRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
                         }
                     },
                     "400": {
@@ -1082,6 +1178,14 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.OtpCodeRequestDTO": {
+            "type": "object",
+            "properties": {
+                "telephone": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.QRSessionResponseDTO": {
             "type": "object",
             "properties": {
@@ -1112,6 +1216,37 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RegisterRequestDTO": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "telephone": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RegisterResponseDTO": {
+            "type": "object",
+            "properties": {
+                "otp_sent_at": {
+                    "type": "string"
+                },
+                "telephone": {
+                    "type": "string"
+                },
+                "user_id": {
                     "type": "string"
                 }
             }
@@ -1223,6 +1358,17 @@ const docTemplate = `{
             "properties": {
                 "nominal": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.VerifyOtpCodeRequestDTO": {
+            "type": "object",
+            "properties": {
+                "otp_code": {
+                    "type": "string"
+                },
+                "telephone": {
+                    "type": "string"
                 }
             }
         }

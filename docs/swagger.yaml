@@ -63,6 +63,11 @@ definitions:
       updatedAt:
         type: string
     type: object
+  dto.OtpCodeRequestDTO:
+    properties:
+      telephone:
+        type: string
+    type: object
   dto.QRSessionResponseDTO:
     properties:
       expired_at:
@@ -83,6 +88,26 @@ definitions:
   dto.RefreshTokenRequestDTO:
     properties:
       refresh_token:
+        type: string
+    type: object
+  dto.RegisterRequestDTO:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      telephone:
+        type: string
+    type: object
+  dto.RegisterResponseDTO:
+    properties:
+      otp_sent_at:
+        type: string
+      telephone:
+        type: string
+      user_id:
         type: string
     type: object
   dto.TransaksiParkirRequestDTO:
@@ -156,6 +181,13 @@ definitions:
     properties:
       nominal:
         type: integer
+    type: object
+  dto.VerifyOtpCodeRequestDTO:
+    properties:
+      otp_code:
+        type: string
+      telephone:
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -270,19 +302,19 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: User Request
+      - description: Register Request
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.UserRequestDTO'
+          $ref: '#/definitions/dto.RegisterRequestDTO'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/dto.UserResponseDTO'
+            $ref: '#/definitions/dto.RegisterResponseDTO'
         "400":
           description: Bad Request
           schema:
@@ -292,6 +324,39 @@ paths:
           schema:
             $ref: '#/definitions/domain.HttpResponse'
       summary: Register a new user
+      tags:
+      - auth
+  /auth/verify-register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Verify OTP Code Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VerifyOtpCodeRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Auth'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      summary: Verify user registration
       tags:
       - auth
   /health:
@@ -503,6 +568,35 @@ paths:
       summary: Create a new QR session for petugas
       tags:
       - qr-session
+  /otp/resend:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: OTP Code Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OtpCodeRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      summary: Resend OTP code to user's telephone
+      tags:
+      - otp
   /transaksi-parkir:
     post:
       consumes:

@@ -1,11 +1,14 @@
 package config
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 
 	_ "github.com/lib/pq"
+	"go.mau.fi/whatsmeow/store/sqlstore"
+	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
 var DB *sql.DB
@@ -48,4 +51,17 @@ func NewDB() (*sql.DB, error) {
 	}
 
 	return db, db.Ping()
+}
+
+func NewWAContainer() (*sqlstore.Container, error) {
+	dbLog := waLog.Stdout("Database", "ERROR", true)
+
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		AppConfig.DBUser, AppConfig.DBPassword, AppConfig.DBHost, AppConfig.DBPort, AppConfig.DBName,
+	)
+
+	ctx := context.Background()
+
+	return sqlstore.New(ctx, "postgres", dsn, dbLog)
 }

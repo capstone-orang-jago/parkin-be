@@ -19,14 +19,14 @@ func NewOtpCodeHandler(otpCodeUsecase domain.OtpCodeUsecase) domain.OtpCodeHandl
 
 // ResendOtpCode godoc
 // @Summary Resend OTP code to user's telephone
-// @Tags otp
+// @Tags auth
 // @Accept json
 // @Produce json
 // @Param request body dto.OtpCodeRequestDTO true "OTP Code Request"
 // @Success 200 {object} domain.HttpResponse
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /otp/resend [post]
+// @Router /auth/resend-otp [post]
 func (h *otpCodeHandler) ResendOtpCode(c *gin.Context) {
 	var req dto.OtpCodeRequestDTO
 	if err := helpers.DecodeJSON(c, &req); err != nil {

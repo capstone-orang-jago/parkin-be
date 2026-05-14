@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"math/rand/v2"
 	"strconv"
 	"time"
@@ -93,36 +94,35 @@ func (usecase *otpCodeUsecase) VerifyOtpCode(ctx context.Context, telephone stri
 	}
 	if otp == nil {
 		logrus.WithField("userID", user.ID).Info("usecase.VerifyOtpCode: no OTP code found for user")
-		return false, nil
+		return false, errors.New("usecase.VerifyOtpCOde: otp code not found")
 	}
 	if time.Now().After(otp.ExpiredAt) {
 		logrus.WithField("userID", user.ID).Info("usecase.VerifyOtpCode: OTP code expired")
-		return false, err
+		usecase.otpCodeRepo.DeleteOtpCode(ctx, otp.ID)
+		return false, errors.New("usecase.VerifyOtpCode: otp code expired")
 	}
 
 	hashedCode := sha256.Sum256([]byte(code))
 	if otp.Code != hex.EncodeToString(hashedCode[:]) {
 		otp.Attempts++
+		if otp.Attempts >= 3 {
+			err := usecase.otpCodeRepo.DeleteOtpCode(ctx, otp.ID)
+			if err != nil {
+				logrus.WithError(err).Error("usecase.VerifyOtpCode: failed to delete OTP code after attempts exceeded")
+			}
+			logrus.WithError(err).Error("usecase.VerifyOtpCode: OTP code attempts exceeded")
+			return false, errors.New("invalid otp code")
+		}
 		if err := usecase.otpCodeRepo.UpdateOtpCode(ctx, otp); err != nil {
 			logrus.WithError(err).Error("usecase.VerifyOtpCode: failed to update OTP code attempts")
 		}
 
-		if otp.Attempts >= 3 {
-			logrus.WithError(err).Error("usecase.VerifyOtpCode: OTP code attempts exceeded")
-			return false, err
-		}
 		logrus.WithField("userID", user.ID).Info("usecase.VerifyOtpCode: invalid OTP code")
-		return false, err
+		return false, errors.New("invalid OTP code")
 	}
 
 	otp.IsUsed = true
 	usecase.otpCodeRepo.UpdateOtpCode(ctx, otp)
-
-	// user.IsVerified = true
-	// if err := usecase.userRepo.UpdateUser(ctx, user, user.ID); err != nil {
-	// 	logrus.WithError(err).Error("usecase.VerifyOtpCode: failed to update user verification status")
-	// 	return false, err
-	// }
 
 	return true, nil
 }

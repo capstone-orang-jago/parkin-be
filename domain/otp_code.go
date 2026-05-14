@@ -22,6 +22,7 @@ type (
 		CreateOtpCode(ctx context.Context, otpCode *OtpCode) error
 		GetOtpCodeByLastActive(ctx context.Context, userId string) (*OtpCode, error)
 		UpdateOtpCode(ctx context.Context, otpCode *OtpCode) error
+		DeleteOtpCode(ctx context.Context, id string) error
 	}
 
 	OtpCodeUsecase interface {

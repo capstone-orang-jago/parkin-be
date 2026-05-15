@@ -42,8 +42,6 @@ func (usecase *userUsecase) GetAllUsers(ctx context.Context) (res []*dto.UserRes
 			Role:       user.Role,
 			Saldo:      user.Saldo,
 			IsVerified: user.IsVerified,
-			CreatedAt:  user.CreatedAt,
-			UpdatedAt:  user.UpdatedAt,
 		}
 		responses = append(responses, response)
 	}
@@ -70,8 +68,6 @@ func (usecase *userUsecase) GetUserByID(ctx context.Context, id string) (res *dt
 		Role:       user.Role,
 		Saldo:      user.Saldo,
 		IsVerified: user.IsVerified,
-		CreatedAt:  user.CreatedAt,
-		UpdatedAt:  user.UpdatedAt,
 	}
 
 	return response, nil
@@ -96,8 +92,29 @@ func (usecase *userUsecase) GetUserByEmail(ctx context.Context, email string) (r
 		Role:       user.Role,
 		Saldo:      user.Saldo,
 		IsVerified: user.IsVerified,
-		CreatedAt:  user.CreatedAt,
-		UpdatedAt:  user.UpdatedAt,
+	}
+
+	return response, nil
+}
+
+func (usecase *userUsecase) GetUserProfile(ctx context.Context, id string) (res *dto.UserResponseDTO, err error) {
+	user, err := usecase.userRepo.GetUserProfile(ctx, id)
+	if err != nil {
+		logrus.WithError(err).Error("usecase.GetUserProfile: failed to get user profile")
+		return nil, err
+	} else if user == nil {
+		logrus.WithError(err).Info("usecase.GetUserProfile: no user found for ID")
+		return nil, nil
+	}
+
+	response := &dto.UserResponseDTO{
+		ID:         user.ID,
+		Name:       user.Name,
+		Telephone:  user.Telephone,
+		Email:      user.Email,
+		Role:       user.Role,
+		Saldo:      user.Saldo,
+		IsVerified: user.IsVerified,
 	}
 
 	return response, nil
@@ -150,8 +167,6 @@ func (usecase *userUsecase) CreateUser(ctx context.Context, req dto.UserRequestD
 		Role:       user.Role,
 		Saldo:      user.Saldo,
 		IsVerified: user.IsVerified,
-		CreatedAt:  user.CreatedAt,
-		UpdatedAt:  user.UpdatedAt,
 	}
 
 	return response, nil
@@ -203,8 +218,6 @@ func (usecase *userUsecase) UpdateUser(ctx context.Context, req dto.UserRequestD
 		Role:       user.Role,
 		Saldo:      user.Saldo,
 		IsVerified: user.IsVerified,
-		CreatedAt:  user.CreatedAt,
-		UpdatedAt:  user.UpdatedAt,
 	}
 
 	return response, nil

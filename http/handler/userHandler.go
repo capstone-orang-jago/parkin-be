@@ -76,6 +76,35 @@ func (handler *userHandler) GetUserByID(c *gin.Context) {
 	})
 }
 
+// GetUserProfile godoc
+// @Summary Get user profile
+// @Tags users
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} dto.UserResponseDTO
+// @Failure 400 {object} domain.HttpResponse
+// @Failure 500 {object} domain.HttpResponse
+// @Router /users/profile [get]
+func (handler *userHandler) GetUserProfile(c *gin.Context) {
+	userId := c.GetString("sub")
+
+	profile, err := handler.userUsecase.GetUserProfile(c.Request.Context(), userId)
+	if err != nil {
+		logrus.WithError(err).Error("handler.GetUserProfile: failed to get user profile")
+		helpers.Response(c, domain.HttpResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	helpers.Response(c, domain.HttpResponse{
+		Code:    http.StatusOK,
+		Message: "success",
+		Data:    profile,
+	})
+}
+
 // CreateUser godoc
 // @Summary Create a new user
 // @Tags users

@@ -6,6 +6,7 @@ import (
 
 	"github.com/capstone-orang-jago/parkin-be/app"
 	"github.com/capstone-orang-jago/parkin-be/config"
+	"github.com/capstone-orang-jago/parkin-be/domain"
 	"github.com/capstone-orang-jago/parkin-be/http/middlewares"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -54,8 +55,8 @@ func RegisterRoutes(application app.App) http.Handler {
 	auth := v1.Group("/auth")
 	{
 		auth.POST("/register", application.AuthHandler.Register)
-		auth.POST("/verify-register", application.AuthHandler.VerifyRegister)
-		auth.POST("/resend-otp", application.OtpCodeHandler.ResendOtpCode)
+		auth.POST("/verify-otp", application.AuthHandler.VerifyRegister)
+		auth.POST("/send-otp", application.OtpCodeHandler.ResendOtpCode)
 
 		auth.POST("/login", application.AuthHandler.Login)
 		auth.POST("/refresh", application.AuthHandler.RefreshToken)
@@ -63,7 +64,7 @@ func RegisterRoutes(application app.App) http.Handler {
 	}
 
 	user := v1.Group("/users")
-	user.Use(middlewares.AuthMiddleware())
+	user.Use(middlewares.AuthMiddleware()).Use(middlewares.RoleMiddleware(domain.RolePengguna))
 	{
 		user.GET("/", application.UserHandler.GetAllUsers)
 		user.GET("/:id", application.UserHandler.GetUserByID)
@@ -72,6 +73,7 @@ func RegisterRoutes(application app.App) http.Handler {
 		user.DELETE("/:id", application.UserHandler.DeleteUser)
 		user.GET("/me/saldo", application.UserHandler.GetUserSaldo)
 		user.PUT("/me/saldo", application.UserHandler.DeductUserSaldo)
+		user.GET("/profile", application.UserHandler.GetUserProfile)
 	}
 
 	lokasiParkir := v1.Group("/lokasi-parkir")

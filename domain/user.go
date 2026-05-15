@@ -32,6 +32,7 @@ type (
 		DeleteUser(ctx context.Context, id string) error
 		GetUserSaldo(ctx context.Context, id string) (int64, error)
 		DeductUserSaldo(ctx context.Context, id string, amount int64) error
+		GetUserProfile(ctx context.Context, id string) (*User, error)
 	}
 
 	UserUsecase interface {
@@ -43,6 +44,7 @@ type (
 		DeleteUser(ctx context.Context, id string) error
 		GetUserSaldo(ctx context.Context, id string) (int64, error)
 		DeductUserSaldo(ctx context.Context, id string, amount int64) error
+		GetUserProfile(ctx context.Context, id string) (res *dto.UserResponseDTO, err error)
 	}
 
 	UserHandler interface {
@@ -53,5 +55,6 @@ type (
 		DeleteUser(c *gin.Context)
 		GetUserSaldo(c *gin.Context)
 		DeductUserSaldo(c *gin.Context)
+		GetUserProfile(c *gin.Context)
 	}
 )

@@ -46,10 +46,6 @@ func (usecase *authUsecase) Login(ctx context.Context, req dto.LoginRequestDTO) 
 		return nil, errors.New("invalid email or password")
 	}
 
-	if !user.IsVerified {
-		return nil, errors.New("telephone number not verified")
-	}
-
 	_, err = helpers.ComparePass(user.Password, req.Password)
 	if err != nil {
 		return nil, errors.New("invalid email or password")

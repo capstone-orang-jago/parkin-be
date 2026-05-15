@@ -107,6 +107,22 @@ func (repo *userRepository) GetUserByTelephone(ctx context.Context, telephone st
 	return user, nil
 }
 
+func (repo *userRepository) GetUserProfile(ctx context.Context, id string) (user *domain.User, err error) {
+	query := `SELECT id, name, telephone, email, role, saldo, is_verified FROM users WHERE id = $1`
+
+	user = &domain.User{}
+
+	err = repo.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Name, &user.Telephone, &user.Email, &user.Role, &user.Saldo, &user.IsVerified)
+	if err == sql.ErrNoRows {
+		logrus.WithError(err).Info("repo.GetUserProfile: no user found for ID")
+		return nil, nil
+	} else if err != nil {
+		logrus.WithError(err).Error("repo.GetUserProfile: failed to get user profile")
+		return nil, err
+	}
+	return user, nil
+}
+
 func (repo *userRepository) CreateUser(ctx context.Context, users *domain.User) (err error) {
 	query := `
 			INSERT INTO users 

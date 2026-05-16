@@ -101,6 +101,7 @@ func (usecase *qrSessionUsecase) CreateQRSession(ctx context.Context, petugasID 
 			ID:         result.LokasiParkir.ID,
 			NamaLokasi: result.LokasiParkir.NamaLokasi,
 			Alamat:     result.LokasiParkir.Alamat,
+			IsActive:   result.LokasiParkir.IsActive,
 			Petugas: &dto.UserResponseDTO{
 				ID:    result.Petugas.ID,
 				Name:  result.Petugas.Name,
@@ -135,6 +136,7 @@ func (usecase *qrSessionUsecase) GetActiveQRByPetugasID(ctx context.Context, pet
 			ID:         data.LokasiParkir.ID,
 			NamaLokasi: data.LokasiParkir.NamaLokasi,
 			Alamat:     data.LokasiParkir.Alamat,
+			IsActive:   data.LokasiParkir.IsActive,
 			Petugas: &dto.UserResponseDTO{
 				ID:    data.Petugas.ID,
 				Name:  data.Petugas.Name,
@@ -189,6 +191,7 @@ func (usecase *qrSessionUsecase) GetQRSessionByPayload(ctx context.Context, payl
 			ID:         qrSession.LokasiParkir.ID,
 			NamaLokasi: qrSession.LokasiParkir.NamaLokasi,
 			Alamat:     qrSession.LokasiParkir.Alamat,
+			IsActive:   qrSession.LokasiParkir.IsActive,
 			Petugas: &dto.UserResponseDTO{
 				ID:    qrSession.Petugas.ID,
 				Name:  qrSession.Petugas.Name,

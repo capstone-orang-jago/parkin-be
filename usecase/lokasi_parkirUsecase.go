@@ -48,10 +48,12 @@ func (usecase *lokasiParkirUsecase) CreateLokasiParkir(ctx context.Context, req 
 		ID:         lokasiParkir.ID,
 		NamaLokasi: lokasiParkir.NamaLokasi,
 		Alamat:     lokasiParkir.Alamat,
-		PetugasID:  lokasiParkir.PetugasID,
 		IsActive:   lokasiParkir.IsActive,
-		CreatedAt:  lokasiParkir.CreatedAt,
-		UpdatedAt:  lokasiParkir.UpdatedAt,
+		Petugas: &dto.UserResponseDTO{
+			ID:    lokasiParkir.Petugas.ID,
+			Name:  lokasiParkir.Petugas.Name,
+			Email: lokasiParkir.Petugas.Email,
+		},
 	}
 
 	return response, nil
@@ -82,8 +84,6 @@ func (usecase *lokasiParkirUsecase) GetAllLokasiParkir(ctx context.Context) ([]*
 			NamaLokasi: lokasi.NamaLokasi,
 			Alamat:     lokasi.Alamat,
 			IsActive:   lokasi.IsActive,
-			CreatedAt:  lokasi.CreatedAt,
-			UpdatedAt:  lokasi.UpdatedAt,
 			Petugas: &dto.UserResponseDTO{
 				ID:    lokasi.Petugas.ID,
 				Name:  lokasi.Petugas.Name,
@@ -113,8 +113,6 @@ func (usecase *lokasiParkirUsecase) GetLokasiParkirByID(ctx context.Context, id 
 		NamaLokasi: lokasiParkir.NamaLokasi,
 		Alamat:     lokasiParkir.Alamat,
 		IsActive:   lokasiParkir.IsActive,
-		CreatedAt:  lokasiParkir.CreatedAt,
-		UpdatedAt:  lokasiParkir.UpdatedAt,
 		Petugas: &dto.UserResponseDTO{
 			ID:    lokasiParkir.Petugas.ID,
 			Name:  lokasiParkir.Petugas.Name,
@@ -142,8 +140,6 @@ func (usecase *lokasiParkirUsecase) GetLokasiParkirByPetugasID(ctx context.Conte
 		NamaLokasi: lokasiParkir.NamaLokasi,
 		Alamat:     lokasiParkir.Alamat,
 		IsActive:   lokasiParkir.IsActive,
-		CreatedAt:  lokasiParkir.CreatedAt,
-		UpdatedAt:  lokasiParkir.UpdatedAt,
 		Petugas: &dto.UserResponseDTO{
 			ID:    lokasiParkir.Petugas.ID,
 			Name:  lokasiParkir.Petugas.Name,
@@ -194,10 +190,7 @@ func (usecase *lokasiParkirUsecase) UpdateLokasiParkir(ctx context.Context, req 
 		ID:         lokasiParkir.ID,
 		NamaLokasi: lokasiParkir.NamaLokasi,
 		Alamat:     lokasiParkir.Alamat,
-		PetugasID:  lokasiParkir.PetugasID,
 		IsActive:   lokasiParkir.IsActive,
-		CreatedAt:  lokasiParkir.CreatedAt,
-		UpdatedAt:  lokasiParkir.UpdatedAt,
 		Petugas: &dto.UserResponseDTO{
 			ID:    lokasiParkir.Petugas.ID,
 			Name:  lokasiParkir.Petugas.Name,

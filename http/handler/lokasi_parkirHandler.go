@@ -178,20 +178,10 @@ func (handler *lokasiParkirHandler) UpdateLokasiParkir(c *gin.Context) {
 		return
 	}
 
-	response := dto.LokasiParkirResponseDTO{
-		ID:         lokasiParkir.ID,
-		NamaLokasi: lokasiParkir.NamaLokasi,
-		Alamat:     lokasiParkir.Alamat,
-		PetugasID:  lokasiParkir.PetugasID,
-		IsActive:   lokasiParkir.IsActive,
-		CreatedAt:  lokasiParkir.CreatedAt,
-		UpdatedAt:  lokasiParkir.UpdatedAt,
-	}
-
 	helpers.Response(c, domain.HttpResponse{
 		Code:    http.StatusOK,
 		Message: "lokasi parkir updated successfully",
-		Data:    response,
+		Data:    lokasiParkir,
 	})
 }
 

@@ -88,17 +88,41 @@ func (handler *transaksiParkirHandler) GetTransaksiParkirByID(c *gin.Context) {
 }
 
 // GetAllTransaksiParkirByPenggunaID godoc
-// @Summary Get all parking transactions by user ID
-// @Description Retrieve all parking transactions associated with a specific user ID
-// @Tags Transaksi Parkir
+// @Summary Get all parking transactions for the authenticated user
+// @Description Retrieve all parking transactions for the authenticated user with pagination and filtering
+// @Tags users
 // @Accept json
 // @Produce json
-// @Success 200 {array} dto.TransaksiParkirResponseDTO
-// @Router /transaksi-parkir/user/me [get]
+// @Param page query int false "Page number"
+// @Param limit query int false "Number of items per page"
+// @Param filter query string false "Filter by time range (semua, minggu, bulan)"
 // @Security BearerAuth
+// @Success 200 {object} domain.HttpResponse
+// @Router /users/transactions [get]
 func (handler *transaksiParkirHandler) GetAllTransaksiParkirByPenggunaID(c *gin.Context) {
 	userID := c.GetString("sub")
-	transaksiParkirList, err := handler.transaksiParkirUsecase.GetAllTransaksiParkirByPenggunaID(c.Request.Context(), userID)
+	var query domain.TransaksiQuery
+
+	if err := c.ShouldBindQuery(&query); err != nil {
+		logrus.WithError(err).Error("handler.GetAllTransaksiParkirByPenggunaID: failed to decode query parameters")
+		helpers.Response(c, domain.HttpResponse{
+			Code:    400,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	if query.Page == 0 {
+		query.Page = 1
+	}
+	if query.Limit == 0 {
+		query.Limit = 10
+	}
+	if query.Filter == "" {
+		query.Filter = "semua"
+	}
+
+	transaksiParkirList, err := handler.transaksiParkirUsecase.GetAllTransaksiParkirByPenggunaID(c.Request.Context(), userID, query.Page, query.Limit, query.Filter)
 	if err != nil {
 		logrus.WithError(err).Error("handler.GetAllTransaksiParkirByPenggunaID: failed to get all transaksi parkir by pengguna ID")
 		helpers.Response(c, domain.HttpResponse{

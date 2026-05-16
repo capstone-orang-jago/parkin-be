@@ -74,6 +74,7 @@ func RegisterRoutes(application app.App) http.Handler {
 		user.GET("/me/saldo", application.UserHandler.GetUserSaldo)
 		user.PUT("/me/saldo", application.UserHandler.DeductUserSaldo)
 		user.GET("/profile", application.UserHandler.GetUserProfile)
+		user.GET("/transactions", application.TransaksiParkirHandler.GetAllTransaksiParkirByPenggunaID)
 	}
 
 	lokasiParkir := v1.Group("/lokasi-parkir")
@@ -98,7 +99,6 @@ func RegisterRoutes(application app.App) http.Handler {
 	{
 		transaksiParkir.POST("/", application.TransaksiParkirHandler.CreateTransaksiParkir)
 		transaksiParkir.GET("/:id", application.TransaksiParkirHandler.GetTransaksiParkirByID)
-		transaksiParkir.GET("/user/me", application.TransaksiParkirHandler.GetAllTransaksiParkirByPenggunaID)
 	}
 	return router
 }

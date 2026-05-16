@@ -229,8 +229,8 @@ func (usecase *transaksiParkirUsecase) GetTransaksiParkirByID(ctx context.Contex
 	return res, nil
 }
 
-func (usecase *transaksiParkirUsecase) GetAllTransaksiParkirByPenggunaID(ctx context.Context, penggunaID string) ([]*dto.TransaksiParkirResponseDTO, error) {
-	transaksis, err := usecase.transaksiParkirRepo.GetAllTransaksiParkirByPenggunaID(ctx, penggunaID)
+func (usecase *transaksiParkirUsecase) GetAllTransaksiParkirByPenggunaID(ctx context.Context, penggunaID string, page, limit int, filter string) ([]*dto.TransaksiParkirResponseDTO, error) {
+	transaksis, err := usecase.transaksiParkirRepo.GetAllTransaksiParkirByPenggunaID(ctx, penggunaID, page, limit, filter)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetAllTransaksiParkirByPenggunaID: failed to get transaksi parkir by pengguna ID")
 		return nil, err
@@ -241,29 +241,19 @@ func (usecase *transaksiParkirUsecase) GetAllTransaksiParkirByPenggunaID(ctx con
 
 	var res []*dto.TransaksiParkirResponseDTO
 	for _, transaksi := range transaksis {
-		petugas, err := usecase.userUsecase.GetUserByID(ctx, transaksi.PetugasID)
-		if err != nil {
-			logrus.WithError(err).Error("usecase.GetAllTransaksiParkirByPenggunaID: failed to get petugas by ID")
-			return nil, err
-		} else if petugas == nil {
-			logrus.WithError(err).Info("usecase.GetAllTransaksiParkirByPenggunaID: no petugas found for ID")
-			return nil, nil
-		}
-
-		lokasi, err := usecase.lokasiParkirUsecase.GetLokasiParkirByID(ctx, transaksi.LokasiID)
-		if err != nil {
-			logrus.WithError(err).Error("usecase.GetAllTransaksiParkirByPenggunaID: failed to get lokasi by ID")
-			return nil, err
-		} else if lokasi == nil {
-			logrus.WithError(err).Info("usecase.GetAllTransaksiParkirByPenggunaID: no lokasi found for ID")
-			return nil, nil
-		}
-
 		res = append(res, &dto.TransaksiParkirResponseDTO{
-			ID:             transaksi.ID,
-			KodeTransaksi:  transaksi.KodeTransaksi,
-			Petugas:        petugas,
-			Lokasi:         lokasi,
+			ID:            transaksi.ID,
+			KodeTransaksi: transaksi.KodeTransaksi,
+			Petugas: &dto.UserResponseDTO{
+				ID:    transaksi.Petugas.ID,
+				Name:  transaksi.Petugas.Name,
+				Email: transaksi.Petugas.Email,
+			},
+			Lokasi: &dto.LokasiParkirResponseDTO{
+				ID:         transaksi.LokasiParkir.ID,
+				NamaLokasi: transaksi.LokasiParkir.NamaLokasi,
+				Alamat:     transaksi.LokasiParkir.Alamat,
+			},
 			JenisKendaraan: transaksi.JenisKendaraan,
 			Tarif:          transaksi.Tarif,
 			SaldoSebelum:   transaksi.SaldoSebelum,

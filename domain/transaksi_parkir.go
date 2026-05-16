@@ -18,19 +18,27 @@ type TransaksiParkir struct {
 	SaldoSebelum   int64
 	SaldoSesudah   int64
 	Status         string
+	Petugas        *User
+	LokasiParkir   *LokasiParkir
+}
+
+type TransaksiQuery struct {
+	Page   int    `form:"page" binding:"omitempty,min=1"`
+	Limit  int    `form:"limit" binding:"omitempty,min=1,max=100"`
+	Filter string `form:"filter" binding:"omitempty,oneof=semua minggu bulan"`
 }
 
 type (
 	TransaksiParkirRepository interface {
 		CreateTransaksiParkir(ctx context.Context, transaksi *TransaksiParkir) error
 		GetTransaksiParkirByID(ctx context.Context, id string) (*TransaksiParkir, error)
-		GetAllTransaksiParkirByPenggunaID(ctx context.Context, penggunaID string) ([]*TransaksiParkir, error)
+		GetAllTransaksiParkirByPenggunaID(ctx context.Context, penggunaID string, page, limit int, filter string) ([]*TransaksiParkir, error)
 	}
 
 	TransaksiParkirUsecase interface {
 		CreateTransaksiParkir(ctx context.Context, req *dto.TransaksiParkirRequestDTO, penggunaID string) (res *dto.TransaksiParkirResponseDTO, err error)
 		GetTransaksiParkirByID(ctx context.Context, id string) (*dto.TransaksiParkirResponseDTO, error)
-		GetAllTransaksiParkirByPenggunaID(ctx context.Context, penggunaID string) ([]*dto.TransaksiParkirResponseDTO, error)
+		GetAllTransaksiParkirByPenggunaID(ctx context.Context, penggunaID string, page, limit int, filter string) ([]*dto.TransaksiParkirResponseDTO, error)
 	}
 
 	TransaksiParkirHandler interface {

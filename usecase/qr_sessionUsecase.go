@@ -150,42 +150,6 @@ func (usecase *qrSessionUsecase) GetActiveQRByPetugasID(ctx context.Context, pet
 	return response, nil
 }
 
-func (usecase *qrSessionUsecase) GetLokasiByPetugasID(ctx context.Context, petugasID string) (res *dto.QRSessionResponseDTO, err error) {
-	data, err := usecase.qrSessionRepo.GetLokasiByPetugasID(ctx, petugasID)
-
-	if err != nil {
-		logrus.WithError(err).Error("usecase.GetLokasiByPetugasID: failed to get lokasi by petugas ID")
-		return nil, err
-	}
-
-	if data == nil {
-		logrus.Info("usecase.GetLokasiByPetugasID: no lokasi found for petugas ID")
-		return nil, errors.New("lokasi not found")
-	}
-
-	response := &dto.QRSessionResponseDTO{
-		ID:        data.ID,
-		LokasiID:  data.LokasiID,
-		PetugasID: data.PetugasID,
-		Payload:   data.Payload,
-		HMAC:      data.HMAC,
-		ExpiredAt: data.ExpiredAt,
-		IsRevoked: data.IsRevoked,
-		Petugas: &dto.UserResponseDTO{
-			ID:    data.Petugas.ID,
-			Name:  data.Petugas.Name,
-			Email: data.Petugas.Email,
-		},
-		LokasiParkir: &dto.LokasiParkirResponseDTO{
-			ID:         data.LokasiParkir.ID,
-			NamaLokasi: data.LokasiParkir.NamaLokasi,
-			Alamat:     data.LokasiParkir.Alamat,
-		},
-	}
-
-	return response, nil
-}
-
 func (usecase *qrSessionUsecase) RevokeQRSession(ctx context.Context, id string) error {
 	if id == "" {
 		logrus.Error("usecase.RevokeQRSession: QR session ID is required")

@@ -223,6 +223,7 @@ func (usecase *transaksiParkirUsecase) GetTransaksiParkirByID(ctx context.Contex
 			ID:         transaksiParkir.LokasiParkir.ID,
 			NamaLokasi: transaksiParkir.LokasiParkir.NamaLokasi,
 			Alamat:     transaksiParkir.LokasiParkir.Alamat,
+			IsActive:   transaksiParkir.LokasiParkir.IsActive,
 			Petugas: &dto.UserResponseDTO{
 				ID:    transaksiParkir.LokasiParkir.Petugas.ID,
 				Name:  transaksiParkir.LokasiParkir.Petugas.Name,
@@ -264,6 +265,7 @@ func (usecase *transaksiParkirUsecase) GetAllTransaksiParkirByPenggunaID(ctx con
 				ID:         transaksi.LokasiParkir.ID,
 				NamaLokasi: transaksi.LokasiParkir.NamaLokasi,
 				Alamat:     transaksi.LokasiParkir.Alamat,
+				IsActive:   transaksi.LokasiParkir.IsActive,
 				Petugas: &dto.UserResponseDTO{
 					ID:    transaksi.LokasiParkir.Petugas.ID,
 					Name:  transaksi.LokasiParkir.Petugas.Name,

@@ -67,7 +67,7 @@ func (repo *transaksiParkirRepository) CreateTransaksiParkir(ctx context.Context
 func (repo *transaksiParkirRepository) GetTransaksiParkirByID(ctx context.Context, id string) (*domain.TransaksiParkir, error) {
 	query := `
         SELECT t.id, t.kode_transaksi, t.jenis_kendaraan, t.tarif, t.saldo_sebelum, t.saldo_sesudah, t.status, t.created_at,
-        l.id, l.nama_lokasi, l.alamat,
+        l.id, l.nama_lokasi, l.alamat, l.is_active,
         u.id, u.name, u.email,
         p.id, p.name, p.email
         FROM transaksi_parkir t
@@ -87,7 +87,7 @@ func (repo *transaksiParkirRepository) GetTransaksiParkirByID(ctx context.Contex
 
 	err := exec.QueryRowContext(ctx, query, id).Scan(
 		&transaksi.ID, &transaksi.KodeTransaksi, &transaksi.JenisKendaraan, &transaksi.Tarif, &transaksi.SaldoSebelum, &transaksi.SaldoSesudah, &transaksi.Status, &transaksi.CreatedAt,
-		&transaksi.LokasiParkir.ID, &transaksi.LokasiParkir.NamaLokasi, &transaksi.LokasiParkir.Alamat,
+		&transaksi.LokasiParkir.ID, &transaksi.LokasiParkir.NamaLokasi, &transaksi.LokasiParkir.Alamat, &transaksi.LokasiParkir.IsActive,
 		&transaksi.Pengguna.ID, &transaksi.Pengguna.Name, &transaksi.Pengguna.Email,
 		&transaksi.LokasiParkir.Petugas.ID, &transaksi.LokasiParkir.Petugas.Name, &transaksi.LokasiParkir.Petugas.Email,
 	)
@@ -108,7 +108,7 @@ func (repo *transaksiParkirRepository) GetAllTransaksiParkirByPenggunaID(ctx con
 
 	query := `
         SELECT t.id, t.kode_transaksi, t.jenis_kendaraan, t.tarif, t.saldo_sebelum, t.saldo_sesudah, t.status, t.created_at,
-        l.id, l.nama_lokasi, l.alamat,
+        l.id, l.nama_lokasi, l.alamat, l.is_active,
         u.id, u.name, u.email,
         p.id, p.name, p.email
         FROM transaksi_parkir t
@@ -151,7 +151,7 @@ func (repo *transaksiParkirRepository) GetAllTransaksiParkirByPenggunaID(ctx con
 		}
 		err = rows.Scan(
 			&transaksi.ID, &transaksi.KodeTransaksi, &transaksi.JenisKendaraan, &transaksi.Tarif, &transaksi.SaldoSebelum, &transaksi.SaldoSesudah, &transaksi.Status, &transaksi.CreatedAt,
-			&transaksi.LokasiParkir.ID, &transaksi.LokasiParkir.NamaLokasi, &transaksi.LokasiParkir.Alamat,
+			&transaksi.LokasiParkir.ID, &transaksi.LokasiParkir.NamaLokasi, &transaksi.LokasiParkir.Alamat, &transaksi.LokasiParkir.IsActive,
 			&transaksi.Pengguna.ID, &transaksi.Pengguna.Name, &transaksi.Pengguna.Email,
 			&transaksi.LokasiParkir.Petugas.ID, &transaksi.LokasiParkir.Petugas.Name, &transaksi.LokasiParkir.Petugas.Email,
 		)

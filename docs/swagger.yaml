@@ -156,8 +156,6 @@ definitions:
     type: object
   dto.UserResponseDTO:
     properties:
-      created_at:
-        type: string
       email:
         type: string
       id:
@@ -173,8 +171,6 @@ definitions:
       saldo:
         type: integer
       telephone:
-        type: string
-      updated_at:
         type: string
     type: object
   dto.UserSaldoRequestDTO:
@@ -645,26 +641,6 @@ paths:
       summary: Get parking transaction by ID
       tags:
       - Transaksi Parkir
-  /transaksi-parkir/user/me:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve all parking transactions associated with a specific user
-        ID
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/dto.TransaksiParkirResponseDTO'
-            type: array
-      security:
-      - BearerAuth: []
-      summary: Get all parking transactions by user ID
-      tags:
-      - Transaksi Parkir
   /users:
     get:
       produces:
@@ -885,6 +861,37 @@ paths:
       security:
       - BearerAuth: []
       summary: Get user profile
+      tags:
+      - users
+  /users/transactions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all parking transactions for the authenticated user with
+        pagination and filtering
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by time range (semua, minggu, bulan)
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all parking transactions for the authenticated user
       tags:
       - users
 securityDefinitions:

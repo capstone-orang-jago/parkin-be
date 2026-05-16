@@ -687,37 +687,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/transaksi-parkir/user/me": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieve all parking transactions associated with a specific user ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Transaksi Parkir"
-                ],
-                "summary": "Get all parking transactions by user ID",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.TransaksiParkirResponseDTO"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/transaksi-parkir/{id}": {
             "get": {
                 "security": [
@@ -968,6 +937,54 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/transactions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve all parking transactions for the authenticated user with pagination and filtering",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get all parking transactions for the authenticated user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by time range (semua, minggu, bulan)",
+                        "name": "filter",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/domain.HttpResponse"
                         }
@@ -1357,9 +1374,6 @@ const docTemplate = `{
         "dto.UserResponseDTO": {
             "type": "object",
             "properties": {
-                "created_at": {
-                    "type": "string"
-                },
                 "email": {
                     "type": "string"
                 },
@@ -1382,9 +1396,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "telephone": {
-                    "type": "string"
-                },
-                "updated_at": {
                     "type": "string"
                 }
             }

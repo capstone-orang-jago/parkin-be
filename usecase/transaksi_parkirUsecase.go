@@ -138,7 +138,7 @@ func (usecase *transaksiParkirUsecase) CreateTransaksiParkir(ctx context.Context
 		KodeTransaksi:  fmt.Sprintf("TRX-%d", time.Now().UnixNano()),
 		PenggunaID:     user.ID,
 		PetugasID:      petugas.ID,
-		LokasiID:       lokasiID,
+		LokasiID:       lokasi.ID,
 		JenisKendaraan: req.JenisKendaraan,
 		Tarif:          tarif,
 		SaldoSebelum:   user.Saldo,
@@ -172,15 +172,30 @@ func (usecase *transaksiParkirUsecase) CreateTransaksiParkir(ctx context.Context
 	}
 
 	res := &dto.TransaksiParkirResponseDTO{
-		ID:             transaksiParkir.ID,
-		KodeTransaksi:  transaksiParkir.KodeTransaksi,
-		Petugas:        petugas,
-		Lokasi:         lokasi,
+		ID:            transaksiParkir.ID,
+		KodeTransaksi: transaksiParkir.KodeTransaksi,
+		Pengguna: &dto.UserResponseDTO{
+			ID:    transaksiParkir.Pengguna.ID,
+			Name:  transaksiParkir.Pengguna.Name,
+			Email: transaksiParkir.Pengguna.Email,
+		},
+		Lokasi: &dto.LokasiParkirResponseDTO{
+			ID:         transaksiParkir.LokasiParkir.ID,
+			NamaLokasi: transaksiParkir.LokasiParkir.NamaLokasi,
+			Alamat:     transaksiParkir.LokasiParkir.Alamat,
+			IsActive:   transaksiParkir.LokasiParkir.IsActive,
+			Petugas: &dto.UserResponseDTO{
+				ID:    transaksiParkir.LokasiParkir.Petugas.ID,
+				Name:  transaksiParkir.LokasiParkir.Petugas.Name,
+				Email: transaksiParkir.LokasiParkir.Petugas.Email,
+			},
+		},
 		JenisKendaraan: transaksiParkir.JenisKendaraan,
 		Tarif:          transaksiParkir.Tarif,
 		SaldoSebelum:   transaksiParkir.SaldoSebelum,
 		SaldoSesudah:   transaksiParkir.SaldoSesudah,
 		Status:         transaksiParkir.Status,
+		CreatedAt:      transaksiParkir.CreatedAt,
 	}
 
 	return res, nil
@@ -199,21 +214,27 @@ func (usecase *transaksiParkirUsecase) GetTransaksiParkirByID(ctx context.Contex
 	res := &dto.TransaksiParkirResponseDTO{
 		ID:            transaksiParkir.ID,
 		KodeTransaksi: transaksiParkir.KodeTransaksi,
-		Petugas: &dto.UserResponseDTO{
-			ID:    transaksiParkir.Petugas.ID,
-			Name:  transaksiParkir.Petugas.Name,
-			Email: transaksiParkir.Petugas.Email,
+		Pengguna: &dto.UserResponseDTO{
+			ID:    transaksiParkir.Pengguna.ID,
+			Name:  transaksiParkir.Pengguna.Name,
+			Email: transaksiParkir.Pengguna.Email,
 		},
 		Lokasi: &dto.LokasiParkirResponseDTO{
 			ID:         transaksiParkir.LokasiParkir.ID,
 			NamaLokasi: transaksiParkir.LokasiParkir.NamaLokasi,
 			Alamat:     transaksiParkir.LokasiParkir.Alamat,
+			Petugas: &dto.UserResponseDTO{
+				ID:    transaksiParkir.LokasiParkir.Petugas.ID,
+				Name:  transaksiParkir.LokasiParkir.Petugas.Name,
+				Email: transaksiParkir.LokasiParkir.Petugas.Email,
+			},
 		},
 		JenisKendaraan: transaksiParkir.JenisKendaraan,
 		Tarif:          transaksiParkir.Tarif,
 		SaldoSebelum:   transaksiParkir.SaldoSebelum,
 		SaldoSesudah:   transaksiParkir.SaldoSesudah,
 		Status:         transaksiParkir.Status,
+		CreatedAt:      transaksiParkir.CreatedAt,
 	}
 
 	return res, nil
@@ -234,21 +255,27 @@ func (usecase *transaksiParkirUsecase) GetAllTransaksiParkirByPenggunaID(ctx con
 		res = append(res, &dto.TransaksiParkirResponseDTO{
 			ID:            transaksi.ID,
 			KodeTransaksi: transaksi.KodeTransaksi,
-			Petugas: &dto.UserResponseDTO{
-				ID:    transaksi.Petugas.ID,
-				Name:  transaksi.Petugas.Name,
-				Email: transaksi.Petugas.Email,
+			Pengguna: &dto.UserResponseDTO{
+				ID:    transaksi.Pengguna.ID,
+				Name:  transaksi.Pengguna.Name,
+				Email: transaksi.Pengguna.Email,
 			},
 			Lokasi: &dto.LokasiParkirResponseDTO{
 				ID:         transaksi.LokasiParkir.ID,
 				NamaLokasi: transaksi.LokasiParkir.NamaLokasi,
 				Alamat:     transaksi.LokasiParkir.Alamat,
+				Petugas: &dto.UserResponseDTO{
+					ID:    transaksi.LokasiParkir.Petugas.ID,
+					Name:  transaksi.LokasiParkir.Petugas.Name,
+					Email: transaksi.LokasiParkir.Petugas.Email,
+				},
 			},
 			JenisKendaraan: transaksi.JenisKendaraan,
 			Tarif:          transaksi.Tarif,
 			SaldoSebelum:   transaksi.SaldoSebelum,
 			SaldoSesudah:   transaksi.SaldoSesudah,
 			Status:         transaksi.Status,
+			CreatedAt:      transaksi.CreatedAt,
 		})
 	}
 

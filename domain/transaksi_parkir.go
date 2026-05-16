@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"time"
 
 	"github.com/capstone-orang-jago/parkin-be/dto"
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,8 @@ type TransaksiParkir struct {
 	SaldoSebelum   int64
 	SaldoSesudah   int64
 	Status         string
-	Petugas        *User
+	CreatedAt      time.Time
+	Pengguna       *User
 	LokasiParkir   *LokasiParkir
 }
 

@@ -39,29 +39,29 @@ definitions:
     properties:
       alamat:
         type: string
-      isActive:
+      is_active:
         type: boolean
-      namaLokasi:
+      nama_lokasi:
         type: string
-      petugasID:
+      petugas_id:
         type: string
+    required:
+    - alamat
+    - nama_lokasi
+    - petugas_id
     type: object
   dto.LokasiParkirResponseDTO:
     properties:
       alamat:
         type: string
-      createdAt:
-        type: string
       id:
         type: string
-      isActive:
+      is_active:
         type: boolean
-      namaLokasi:
+      nama_lokasi:
         type: string
-      petugasID:
-        type: string
-      updatedAt:
-        type: string
+      petugas:
+        $ref: '#/definitions/dto.UserResponseDTO'
     type: object
   dto.OtpCodeRequestDTO:
     properties:
@@ -78,11 +78,9 @@ definitions:
         type: string
       is_revoked:
         type: boolean
-      location_id:
-        type: string
+      lokasi_parkir:
+        $ref: '#/definitions/dto.LokasiParkirResponseDTO'
       payload:
-        type: string
-      petugas_id:
         type: string
     type: object
   dto.RefreshTokenRequestDTO:
@@ -122,6 +120,8 @@ definitions:
     type: object
   dto.TransaksiParkirResponseDTO:
     properties:
+      created_at:
+        type: string
       id:
         type: string
       jenis_kendaraan:
@@ -130,7 +130,7 @@ definitions:
         type: string
       lokasi:
         $ref: '#/definitions/dto.LokasiParkirResponseDTO'
-      petugas:
+      pengguna:
         $ref: '#/definitions/dto.UserResponseDTO'
       saldo_sebelum:
         type: integer
@@ -140,8 +140,6 @@ definitions:
         type: string
       tarif:
         type: integer
-      waktu:
-        type: string
     type: object
   dto.UserRequestDTO:
     properties:

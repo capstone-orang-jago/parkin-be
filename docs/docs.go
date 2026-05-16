@@ -1190,17 +1190,22 @@ const docTemplate = `{
         },
         "dto.LokasiParkirRequestDTO": {
             "type": "object",
+            "required": [
+                "alamat",
+                "nama_lokasi",
+                "petugas_id"
+            ],
             "properties": {
                 "alamat": {
                     "type": "string"
                 },
-                "isActive": {
+                "is_active": {
                     "type": "boolean"
                 },
-                "namaLokasi": {
+                "nama_lokasi": {
                     "type": "string"
                 },
-                "petugasID": {
+                "petugas_id": {
                     "type": "string"
                 }
             }
@@ -1211,23 +1216,17 @@ const docTemplate = `{
                 "alamat": {
                     "type": "string"
                 },
-                "createdAt": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "string"
                 },
-                "isActive": {
+                "is_active": {
                     "type": "boolean"
                 },
-                "namaLokasi": {
+                "nama_lokasi": {
                     "type": "string"
                 },
-                "petugasID": {
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
+                "petugas": {
+                    "$ref": "#/definitions/dto.UserResponseDTO"
                 }
             }
         },
@@ -1254,13 +1253,10 @@ const docTemplate = `{
                 "is_revoked": {
                     "type": "boolean"
                 },
-                "location_id": {
-                    "type": "string"
+                "lokasi_parkir": {
+                    "$ref": "#/definitions/dto.LokasiParkirResponseDTO"
                 },
                 "payload": {
-                    "type": "string"
-                },
-                "petugas_id": {
                     "type": "string"
                 }
             }
@@ -1322,6 +1318,9 @@ const docTemplate = `{
         "dto.TransaksiParkirResponseDTO": {
             "type": "object",
             "properties": {
+                "created_at": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -1334,7 +1333,7 @@ const docTemplate = `{
                 "lokasi": {
                     "$ref": "#/definitions/dto.LokasiParkirResponseDTO"
                 },
-                "petugas": {
+                "pengguna": {
                     "$ref": "#/definitions/dto.UserResponseDTO"
                 },
                 "saldo_sebelum": {
@@ -1348,9 +1347,6 @@ const docTemplate = `{
                 },
                 "tarif": {
                     "type": "integer"
-                },
-                "waktu": {
-                    "type": "string"
                 }
             }
         },

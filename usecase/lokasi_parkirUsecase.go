@@ -81,10 +81,14 @@ func (usecase *lokasiParkirUsecase) GetAllLokasiParkir(ctx context.Context) ([]*
 			ID:         lokasi.ID,
 			NamaLokasi: lokasi.NamaLokasi,
 			Alamat:     lokasi.Alamat,
-			PetugasID:  lokasi.PetugasID,
 			IsActive:   lokasi.IsActive,
 			CreatedAt:  lokasi.CreatedAt,
 			UpdatedAt:  lokasi.UpdatedAt,
+			Petugas: &dto.UserResponseDTO{
+				ID:    lokasi.Petugas.ID,
+				Name:  lokasi.Petugas.Name,
+				Email: lokasi.Petugas.Email,
+			},
 		}
 		responses = append(responses, response)
 	}
@@ -95,11 +99,6 @@ func (usecase *lokasiParkirUsecase) GetAllLokasiParkir(ctx context.Context) ([]*
 func (usecase *lokasiParkirUsecase) GetLokasiParkirByID(ctx context.Context, id string) (*dto.LokasiParkirResponseDTO, error) {
 	lokasiParkir, err := usecase.lokasiParkirRepo.GetLokasiParkirByID(ctx, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			logrus.Info("usecase.GetLokasiParkirByID: no lokasi parkir found for id")
-			return nil, nil
-		}
-
 		logrus.WithError(err).Error("usecase.GetLokasiParkirByID: failed to get lokasi parkir by id")
 		return nil, err
 	}
@@ -113,10 +112,14 @@ func (usecase *lokasiParkirUsecase) GetLokasiParkirByID(ctx context.Context, id 
 		ID:         lokasiParkir.ID,
 		NamaLokasi: lokasiParkir.NamaLokasi,
 		Alamat:     lokasiParkir.Alamat,
-		PetugasID:  lokasiParkir.PetugasID,
 		IsActive:   lokasiParkir.IsActive,
 		CreatedAt:  lokasiParkir.CreatedAt,
 		UpdatedAt:  lokasiParkir.UpdatedAt,
+		Petugas: &dto.UserResponseDTO{
+			ID:    lokasiParkir.Petugas.ID,
+			Name:  lokasiParkir.Petugas.Name,
+			Email: lokasiParkir.Petugas.Email,
+		},
 	}
 
 	return response, nil
@@ -125,11 +128,6 @@ func (usecase *lokasiParkirUsecase) GetLokasiParkirByID(ctx context.Context, id 
 func (usecase *lokasiParkirUsecase) GetLokasiParkirByPetugasID(ctx context.Context, petugasID string) (*dto.LokasiParkirResponseDTO, error) {
 	lokasiParkir, err := usecase.lokasiParkirRepo.GetLokasiParkirByPetugasID(ctx, petugasID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			logrus.Info("usecase.GetLokasiParkirByPetugasID: no lokasi parkir found for petugas ID")
-			return nil, nil
-		}
-
 		logrus.WithError(err).Error("usecase.GetLokasiParkirByPetugasID: failed to get lokasi parkir by petugas id")
 		return nil, err
 	}
@@ -143,10 +141,14 @@ func (usecase *lokasiParkirUsecase) GetLokasiParkirByPetugasID(ctx context.Conte
 		ID:         lokasiParkir.ID,
 		NamaLokasi: lokasiParkir.NamaLokasi,
 		Alamat:     lokasiParkir.Alamat,
-		PetugasID:  lokasiParkir.PetugasID,
 		IsActive:   lokasiParkir.IsActive,
 		CreatedAt:  lokasiParkir.CreatedAt,
 		UpdatedAt:  lokasiParkir.UpdatedAt,
+		Petugas: &dto.UserResponseDTO{
+			ID:    lokasiParkir.Petugas.ID,
+			Name:  lokasiParkir.Petugas.Name,
+			Email: lokasiParkir.Petugas.Email,
+		},
 	}
 
 	return response, nil
@@ -155,11 +157,6 @@ func (usecase *lokasiParkirUsecase) GetLokasiParkirByPetugasID(ctx context.Conte
 func (usecase *lokasiParkirUsecase) UpdateLokasiParkir(ctx context.Context, req dto.LokasiParkirRequestDTO, id string) (res *dto.LokasiParkirResponseDTO, err error) {
 	lokasiParkir, err := usecase.lokasiParkirRepo.GetLokasiParkirByID(ctx, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			logrus.Info("usecase.UpdateLokasiParkir: no lokasi parkir found for id")
-			return nil, nil
-		}
-
 		logrus.WithError(err).Error("usecase.UpdateLokasiParkir: failed to get lokasi parkir by id")
 		return nil, err
 	}
@@ -201,6 +198,11 @@ func (usecase *lokasiParkirUsecase) UpdateLokasiParkir(ctx context.Context, req 
 		IsActive:   lokasiParkir.IsActive,
 		CreatedAt:  lokasiParkir.CreatedAt,
 		UpdatedAt:  lokasiParkir.UpdatedAt,
+		Petugas: &dto.UserResponseDTO{
+			ID:    lokasiParkir.Petugas.ID,
+			Name:  lokasiParkir.Petugas.Name,
+			Email: lokasiParkir.Petugas.Email,
+		},
 	}
 
 	return response, nil

@@ -17,6 +17,7 @@ type (
 		IsActive   bool
 		CreatedAt  time.Time
 		UpdatedAt  time.Time
+		Petugas    *User
 	}
 
 	LokasiParkirRepository interface {

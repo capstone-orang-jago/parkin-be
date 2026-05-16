@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/capstone-orang-jago/parkin-be/domain"
 	"github.com/sirupsen/logrus"
@@ -29,7 +30,10 @@ func (repo *lokasiParkirRepository) CreateLokasiParkir(ctx context.Context, loka
 }
 
 func (repo *lokasiParkirRepository) GetAllLokasiParkir(ctx context.Context) (lokasiParkir []*domain.LokasiParkir, err error) {
-	query := `SELECT id, nama_lokasi, alamat, petugas_id, is_active, created_at, updated_at FROM lokasi_parkir`
+	query := `SELECT l.id, l.nama_lokasi, l.alamat, l.is_active,
+	p.id, p.name, p.email
+	FROM lokasi_parkir l
+	LEFT JOIN users p ON l.petugas_id = p.id`
 
 	rows, err := repo.db.QueryContext(ctx, query)
 	if err == sql.ErrNoRows {
@@ -43,8 +47,10 @@ func (repo *lokasiParkirRepository) GetAllLokasiParkir(ctx context.Context) (lok
 	defer rows.Close()
 
 	for rows.Next() {
-		lokasi := &domain.LokasiParkir{}
-		err = rows.Scan(&lokasi.ID, &lokasi.NamaLokasi, &lokasi.Alamat, &lokasi.PetugasID, &lokasi.IsActive, &lokasi.CreatedAt, &lokasi.UpdatedAt)
+		lokasi := &domain.LokasiParkir{
+			Petugas: &domain.User{},
+		}
+		err = rows.Scan(&lokasi.ID, &lokasi.NamaLokasi, &lokasi.Alamat, &lokasi.IsActive, &lokasi.Petugas.ID, &lokasi.Petugas.Name, &lokasi.Petugas.Email)
 		if err != nil {
 			logrus.WithError(err).Error("repo.GetAllLokasiParkir: failed to scan lokasi parkir")
 			return nil, err
@@ -56,11 +62,16 @@ func (repo *lokasiParkirRepository) GetAllLokasiParkir(ctx context.Context) (lok
 }
 
 func (repo *lokasiParkirRepository) GetLokasiParkirByID(ctx context.Context, id string) (lokasiParkir *domain.LokasiParkir, err error) {
-	query := `SELECT id, nama_lokasi, alamat, petugas_id, is_active, created_at, updated_at FROM lokasi_parkir WHERE id = $1`
+	query := `SELECT l.id, l.nama_lokasi, l.alamat, l.is_active,
+	p.id, p.name, p.email
+	FROM lokasi_parkir l
+	LEFT JOIN users p ON l.petugas_id = p.id
+	WHERE l.id = $1`
 
-	lokasiParkir = &domain.LokasiParkir{}
-
-	err = repo.db.QueryRowContext(ctx, query, id).Scan(&lokasiParkir.ID, &lokasiParkir.NamaLokasi, &lokasiParkir.Alamat, &lokasiParkir.PetugasID, &lokasiParkir.IsActive, &lokasiParkir.CreatedAt, &lokasiParkir.UpdatedAt)
+	lokasiParkir = &domain.LokasiParkir{
+		Petugas: &domain.User{},
+	}
+	err = repo.db.QueryRowContext(ctx, query, id).Scan(&lokasiParkir.ID, &lokasiParkir.NamaLokasi, &lokasiParkir.Alamat, &lokasiParkir.IsActive, &lokasiParkir.Petugas.ID, &lokasiParkir.Petugas.Name, &lokasiParkir.Petugas.Email)
 	if err == sql.ErrNoRows {
 		logrus.WithError(err).Info("repo.GetLokasiParkirByID: no lokasi parkir found for ID")
 		return nil, nil
@@ -69,15 +80,24 @@ func (repo *lokasiParkirRepository) GetLokasiParkirByID(ctx context.Context, id 
 		return nil, err
 	}
 
+	fmt.Printf("ISI DATA DI REPO: %+v\n", lokasiParkir)
+	fmt.Printf("ISI PETUGAS DI REPO: %+v\n", lokasiParkir.Petugas)
+
 	return lokasiParkir, err
 }
 
 func (repo *lokasiParkirRepository) GetLokasiParkirByPetugasID(ctx context.Context, petugasID string) (lokasiParkir *domain.LokasiParkir, err error) {
-	query := `SELECT id, nama_lokasi, alamat, petugas_id, is_active, created_at, updated_at FROM lokasi_parkir WHERE petugas_id = $1`
+	query := `SELECT l.id, l.nama_lokasi, l.alamat, l.is_active, 
+	p.id, p.name, p.email
+	FROM lokasi_parkir l
+	LEFT JOIN users p ON l.petugas_id = p.id
+	WHERE l.petugas_id = $1`
 
-	lokasiParkir = &domain.LokasiParkir{}
+	lokasiParkir = &domain.LokasiParkir{
+		Petugas: &domain.User{},
+	}
 
-	err = repo.db.QueryRowContext(ctx, query, petugasID).Scan(&lokasiParkir.ID, &lokasiParkir.NamaLokasi, &lokasiParkir.Alamat, &lokasiParkir.PetugasID, &lokasiParkir.IsActive, &lokasiParkir.CreatedAt, &lokasiParkir.UpdatedAt)
+	err = repo.db.QueryRowContext(ctx, query, petugasID).Scan(&lokasiParkir.ID, &lokasiParkir.NamaLokasi, &lokasiParkir.Alamat, &lokasiParkir.IsActive, &lokasiParkir.Petugas.ID, &lokasiParkir.Petugas.Name, &lokasiParkir.Petugas.Email)
 	if err == sql.ErrNoRows {
 		logrus.WithError(err).Info("repo.GetLokasiParkirByPetugasID: no lokasi parkir found for PetugasID")
 		return nil, nil

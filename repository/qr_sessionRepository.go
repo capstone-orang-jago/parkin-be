@@ -22,7 +22,7 @@ func NewQRSessionRepository(db *sql.DB) *qrSessionRepository {
 func (repo *qrSessionRepository) CreateQRSession(ctx context.Context, session *domain.QRSession) error {
 	query := `INSERT INTO qr_sessions (lokasi_id, petugas_id, payload, hmac, expired_at, is_revoked) VALUES ($1, $2, $3, $4, $5, $6)`
 	exec := helpers.GetExecutor(ctx, repo.db)
-	_, err := exec.ExecContext(ctx, query, session.LocationID, session.PetugasID, session.Payload, session.HMAC, session.ExpiredAt, session.IsRevoked)
+	_, err := exec.ExecContext(ctx, query, session.LokasiID, session.PetugasID, session.Payload, session.HMAC, session.ExpiredAt, session.IsRevoked)
 	if err != nil {
 		logrus.WithError(err).Error("repo.CreateQRSession: failed to create QR session")
 		return err
@@ -31,11 +31,21 @@ func (repo *qrSessionRepository) CreateQRSession(ctx context.Context, session *d
 }
 
 func (repo *qrSessionRepository) GetActiveQRByPetugasID(ctx context.Context, petugasID string) (*domain.QRSession, error) {
-	query := `SELECT id, lokasi_id, petugas_id, payload, hmac, expired_at, is_revoked FROM qr_sessions WHERE petugas_id = $1 AND is_revoked = false AND expired_at > NOW()  FOR UPDATE`
+	query := `SELECT q.id, q.lokasi_id, q.petugas_id, q.payload, q.hmac, q.expired_at, q.is_revoked,
+	p.id, p.name, p.email,
+	l.id, l.nama_lokasi, l.alamat
+	FROM qr_sessions q
+	LEFT JOIN users p on q.petugas_id = p.id
+	LEFT JOIN lokasi_parkir l on q.lokasi_id = l.id
+	WHERE petugas_id = $1 AND is_revoked = false AND expired_at > NOW()  FOR UPDATE`
+
 	exec := helpers.GetExecutor(ctx, repo.db)
 	row := exec.QueryRowContext(ctx, query, petugasID)
-	var session domain.QRSession
-	err := row.Scan(&session.ID, &session.LocationID, &session.PetugasID, &session.Payload, &session.HMAC, &session.ExpiredAt, &session.IsRevoked)
+	qrSession := &domain.QRSession{
+		Petugas:      &domain.User{},
+		LokasiParkir: &domain.LokasiParkir{},
+	}
+	err := row.Scan(&qrSession.ID, &qrSession.LokasiID, &qrSession.PetugasID, &qrSession.Payload, &qrSession.HMAC, &qrSession.ExpiredAt, &qrSession.IsRevoked, &qrSession.Petugas.ID, &qrSession.Petugas.Name, &qrSession.Petugas.Email, &qrSession.LokasiParkir.ID, &qrSession.LokasiParkir.NamaLokasi, &qrSession.LokasiParkir.Alamat)
 	if err == sql.ErrNoRows {
 		logrus.WithError(err).Info("repo.GetActiveQRByPetugasID: no active QR session found for petugas ID")
 		return nil, nil
@@ -43,25 +53,36 @@ func (repo *qrSessionRepository) GetActiveQRByPetugasID(ctx context.Context, pet
 		logrus.WithError(err).Error("repo.GetActiveQRByPetugasID: failed to get active QR session by petugas ID")
 		return nil, err
 	}
-	return &session, nil
+	return qrSession, nil
 }
 
-func (repo *qrSessionRepository) GetLokasiByPetugasID(ctx context.Context, petugasID string) (string, error) {
-	query := `SELECT lokasi_id FROM qr_sessions WHERE petugas_id = $1 AND is_revoked = false AND expired_at > NOW()`
+func (repo *qrSessionRepository) GetLokasiByPetugasID(ctx context.Context, petugasID string) (*domain.QRSession, error) {
+	query := `SELECT q.lokasi_id,
+	l.id, l.nama_lokasi, l.alamat,
+	p.id, p.name, p.email
+	FROM qr_sessions q 
+	LEFT JOIN lokasi_parkir l ON q.lokasi_id = l.id
+	LEFT JOIN users p ON q.petugas_id = p.id
+	WHERE q.petugas_id = $1 
+	AND q.is_revoked = false 
+	AND q.expired_at > NOW()`
 
 	exec := helpers.GetExecutor(ctx, repo.db)
 	row := exec.QueryRowContext(ctx, query, petugasID)
 
-	var locationID string
-	err := row.Scan(&locationID)
+	lokasi := &domain.QRSession{
+		Petugas:      &domain.User{},
+		LokasiParkir: &domain.LokasiParkir{},
+	}
+	err := row.Scan(&lokasi.LokasiID, &lokasi.LokasiParkir.ID, &lokasi.LokasiParkir.NamaLokasi, &lokasi.LokasiParkir.Alamat, &lokasi.Petugas.ID, &lokasi.Petugas.Name, &lokasi.Petugas.Email)
 	if err == sql.ErrNoRows {
 		logrus.WithError(err).Info("repo.GetLokasiByPetugasID: no lokasi found for petugas ID")
-		return "", nil
+		return nil, nil
 	} else if err != nil {
 		logrus.WithError(err).Error("repo.GetLokasiByPetugasID: failed to get lokasi by petugas ID")
-		return "", err
+		return nil, err
 	}
-	return locationID, nil
+	return lokasi, nil
 }
 
 func (repo *qrSessionRepository) RevokeQRSession(ctx context.Context, id string) error {
@@ -75,11 +96,22 @@ func (repo *qrSessionRepository) RevokeQRSession(ctx context.Context, id string)
 }
 
 func (repo *qrSessionRepository) GetQRSessionByPayload(ctx context.Context, payload string) (*domain.QRSession, error) {
-	query := `SELECT id, lokasi_id, petugas_id, payload, hmac, expired_at, is_revoked FROM qr_sessions WHERE payload = $1 AND is_revoked = false AND expired_at > NOW()`
+	query := `SELECT q.id, q.lokasi_id, q.petugas_id, q.payload, q.hmac, q.expired_at, q.is_revoked,
+	p.id, p.name, p.email,
+	l.id, l.nama_lokasi, l.alamat
+	FROM qr_sessions q 
+	LEFT JOIN users p ON q.petugas_id = p.id
+	LEFT JOIN lokasi_parkir l ON q.lokasi_id = l.id
+	WHERE q.payload = $1 
+	AND q.is_revoked = false 
+	AND q.expired_at > NOW()`
 	exec := helpers.GetExecutor(ctx, repo.db)
 	row := exec.QueryRowContext(ctx, query, payload)
-	var session domain.QRSession
-	err := row.Scan(&session.ID, &session.LocationID, &session.PetugasID, &session.Payload, &session.HMAC, &session.ExpiredAt, &session.IsRevoked)
+	qrSession := &domain.QRSession{
+		Petugas:      &domain.User{},
+		LokasiParkir: &domain.LokasiParkir{},
+	}
+	err := row.Scan(&qrSession.ID, &qrSession.LokasiID, &qrSession.PetugasID, &qrSession.Payload, &qrSession.HMAC, &qrSession.ExpiredAt, &qrSession.IsRevoked, &qrSession.Petugas.ID, &qrSession.Petugas.Name, &qrSession.Petugas.Email, &qrSession.LokasiParkir.ID, &qrSession.LokasiParkir.NamaLokasi, &qrSession.LokasiParkir.Alamat)
 	if err == sql.ErrNoRows {
 		logrus.WithError(err).Info("repo.GetQRSessionByPayload: no QR session found for payload")
 		return nil, nil
@@ -87,5 +119,5 @@ func (repo *qrSessionRepository) GetQRSessionByPayload(ctx context.Context, payl
 		logrus.WithError(err).Error("repo.GetQRSessionByPayload: failed to get QR session by payload")
 		return nil, err
 	}
-	return &session, nil
+	return qrSession, nil
 }

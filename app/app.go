@@ -45,7 +45,7 @@ func InitApp(cfg *config.Config, waService domain.WaService) App {
 	otpCodeUsecase := usecase.NewOtpCodeUsecase(otpCodeRepo, userRepo, waService)
 	authUsecase := usecase.NewAuthUsecase(authRepo, userRepo, transactor, otpCodeUsecase)
 	lokasiParkirUsecase := usecase.NewLokasiParkirUsecase(lokasiParkirRepo)
-	qrSessionUsecase := usecase.NewQRSessionUsecase(qrSessionRepo, lokasiParkirUsecase, transactor)
+	qrSessionUsecase := usecase.NewQRSessionUsecase(qrSessionRepo, lokasiParkirUsecase, transactor, config.AppConfig.QR_SECRET_KEY)
 
 	userHandler := handler.NewUserHandler(userUsecase)
 	otpCodeHandler := handler.NewOtpCodeHandler(otpCodeUsecase)

@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/capstone-orang-jago/parkin-be/domain"
-	"github.com/capstone-orang-jago/parkin-be/dto"
 	"github.com/capstone-orang-jago/parkin-be/helpers"
 	"github.com/gin-gonic/gin"
 )
@@ -41,18 +40,9 @@ func (handler *qrSessionHandler) CreateQRSession(c *gin.Context) {
 		return
 	}
 
-	data := dto.QRSessionResponseDTO{
-		LocationID: qrSession.LocationID,
-		PetugasID:  qrSession.PetugasID,
-		Payload:    qrSession.Payload,
-		HMAC:       qrSession.HMAC,
-		ExpiredAt:  qrSession.ExpiredAt,
-		IsRevoked:  qrSession.IsRevoked,
-	}
-
 	helpers.Response(c, domain.HttpResponse{
 		Code:    http.StatusCreated,
 		Message: "QR session created successfully",
-		Data:    data,
+		Data:    qrSession,
 	})
 }

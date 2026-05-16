@@ -93,21 +93,19 @@ func (usecase *qrSessionUsecase) CreateQRSession(ctx context.Context, petugasID 
 
 	response := &dto.QRSessionResponseDTO{
 		ID:        result.ID,
-		LokasiID:  result.LokasiID,
-		PetugasID: result.PetugasID,
 		Payload:   result.Payload,
 		HMAC:      result.HMAC,
 		ExpiredAt: result.ExpiredAt,
 		IsRevoked: result.IsRevoked,
-		Petugas: &dto.UserResponseDTO{
-			ID:    result.Petugas.ID,
-			Name:  result.Petugas.Name,
-			Email: result.Petugas.Email,
-		},
 		LokasiParkir: &dto.LokasiParkirResponseDTO{
 			ID:         result.LokasiParkir.ID,
 			NamaLokasi: result.LokasiParkir.NamaLokasi,
 			Alamat:     result.LokasiParkir.Alamat,
+			Petugas: &dto.UserResponseDTO{
+				ID:    result.Petugas.ID,
+				Name:  result.Petugas.Name,
+				Email: result.Petugas.Email,
+			},
 		},
 	}
 
@@ -129,21 +127,19 @@ func (usecase *qrSessionUsecase) GetActiveQRByPetugasID(ctx context.Context, pet
 
 	response := &dto.QRSessionResponseDTO{
 		ID:        data.ID,
-		LokasiID:  data.LokasiID,
-		PetugasID: data.PetugasID,
 		Payload:   data.Payload,
 		HMAC:      data.HMAC,
 		ExpiredAt: data.ExpiredAt,
 		IsRevoked: data.IsRevoked,
-		Petugas: &dto.UserResponseDTO{
-			ID:    data.Petugas.ID,
-			Name:  data.Petugas.Name,
-			Email: data.Petugas.Email,
-		},
 		LokasiParkir: &dto.LokasiParkirResponseDTO{
 			ID:         data.LokasiParkir.ID,
 			NamaLokasi: data.LokasiParkir.NamaLokasi,
 			Alamat:     data.LokasiParkir.Alamat,
+			Petugas: &dto.UserResponseDTO{
+				ID:    data.Petugas.ID,
+				Name:  data.Petugas.Name,
+				Email: data.Petugas.Email,
+			},
 		},
 	}
 
@@ -185,21 +181,19 @@ func (usecase *qrSessionUsecase) GetQRSessionByPayload(ctx context.Context, payl
 
 	response := &dto.QRSessionResponseDTO{
 		ID:        qrSession.ID,
-		LokasiID:  qrSession.LokasiID,
-		PetugasID: qrSession.PetugasID,
 		Payload:   qrSession.Payload,
 		HMAC:      qrSession.HMAC,
 		ExpiredAt: qrSession.ExpiredAt,
 		IsRevoked: qrSession.IsRevoked,
-		Petugas: &dto.UserResponseDTO{
-			ID:    qrSession.Petugas.ID,
-			Name:  qrSession.Petugas.Name,
-			Email: qrSession.Petugas.Email,
-		},
 		LokasiParkir: &dto.LokasiParkirResponseDTO{
 			ID:         qrSession.LokasiParkir.ID,
 			NamaLokasi: qrSession.LokasiParkir.NamaLokasi,
 			Alamat:     qrSession.LokasiParkir.Alamat,
+			Petugas: &dto.UserResponseDTO{
+				ID:    qrSession.Petugas.ID,
+				Name:  qrSession.Petugas.Name,
+				Email: qrSession.Petugas.Email,
+			},
 		},
 	}
 	return response, nil

@@ -35,13 +35,20 @@ func (repo *transaksiParkirRepository) CreateTransaksiParkir(ctx context.Context
 
 func (repo *transaksiParkirRepository) GetTransaksiParkirByID(ctx context.Context, id string) (*domain.TransaksiParkir, error) {
 	query := `
-		SELECT id, kode_transaksi, pengguna_id, petugas_id, lokasi_id, jenis_kendaraan, tarif, saldo_sebelum, saldo_sesudah, status
-		FROM transaksi_parkir
-		WHERE id = $1
+		SELECT t.id, t.kode_transaksi, t.jenis_kendaraan, t.tarif, t.saldo_sebelum, t.saldo_sesudah, t.status,
+		p.id, p.name, p.email,
+		l.id, l.nama_lokasi, l.alamat
+		FROM transaksi_parkir t
+		LEFT JOIN users p ON t.petugas_id = p.id
+		LEFT JOIN lokasi_parkir l ON t.lokasi_id = l.id
+		WHERE t.id = $1
 	`
 	exec := helpers.GetExecutor(ctx, repo.db)
-	transaksi := &domain.TransaksiParkir{}
-	err := exec.QueryRowContext(ctx, query, id).Scan(&transaksi.ID, &transaksi.KodeTransaksi, &transaksi.PenggunaID, &transaksi.PetugasID, &transaksi.LokasiID, &transaksi.JenisKendaraan, &transaksi.Tarif, &transaksi.SaldoSebelum, &transaksi.SaldoSesudah, &transaksi.Status)
+	transaksi := &domain.TransaksiParkir{
+		Petugas:      &domain.User{},
+		LokasiParkir: &domain.LokasiParkir{},
+	}
+	err := exec.QueryRowContext(ctx, query, id).Scan(&transaksi.ID, &transaksi.KodeTransaksi, &transaksi.JenisKendaraan, &transaksi.Tarif, &transaksi.SaldoSebelum, &transaksi.SaldoSesudah, &transaksi.Status, &transaksi.Petugas.ID, &transaksi.Petugas.Name, &transaksi.Petugas.Email, &transaksi.LokasiParkir.ID, &transaksi.LokasiParkir.NamaLokasi, &transaksi.LokasiParkir.Alamat)
 	if err == sql.ErrNoRows {
 		logrus.WithError(err).Info("repo.GetTransaksiParkirByID: no transaksi parkir found for ID")
 		return nil, nil

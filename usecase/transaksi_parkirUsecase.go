@@ -196,29 +196,19 @@ func (usecase *transaksiParkirUsecase) GetTransaksiParkirByID(ctx context.Contex
 		return nil, nil
 	}
 
-	petugas, err := usecase.userUsecase.GetUserByID(ctx, transaksiParkir.PetugasID)
-	if err != nil {
-		logrus.WithError(err).Error("usecase.GetTransaksiParkirByID: failed to get petugas by ID")
-		return nil, err
-	} else if petugas == nil {
-		logrus.WithError(err).Info("usecase.GetTransaksiParkirByID: no petugas found for ID")
-		return nil, nil
-	}
-
-	lokasi, err := usecase.lokasiParkirUsecase.GetLokasiParkirByID(ctx, transaksiParkir.LokasiID)
-	if err != nil {
-		logrus.WithError(err).Error("usecase.GetTransaksiParkirByID: failed to get lokasi by ID")
-		return nil, err
-	} else if lokasi == nil {
-		logrus.WithError(err).Info("usecase.GetTransaksiParkirByID: no lokasi found for ID")
-		return nil, nil
-	}
-
 	res := &dto.TransaksiParkirResponseDTO{
-		ID:             transaksiParkir.ID,
-		KodeTransaksi:  transaksiParkir.KodeTransaksi,
-		Petugas:        petugas,
-		Lokasi:         lokasi,
+		ID:            transaksiParkir.ID,
+		KodeTransaksi: transaksiParkir.KodeTransaksi,
+		Petugas: &dto.UserResponseDTO{
+			ID:    transaksiParkir.Petugas.ID,
+			Name:  transaksiParkir.Petugas.Name,
+			Email: transaksiParkir.Petugas.Email,
+		},
+		Lokasi: &dto.LokasiParkirResponseDTO{
+			ID:         transaksiParkir.LokasiParkir.ID,
+			NamaLokasi: transaksiParkir.LokasiParkir.NamaLokasi,
+			Alamat:     transaksiParkir.LokasiParkir.Alamat,
+		},
 		JenisKendaraan: transaksiParkir.JenisKendaraan,
 		Tarif:          transaksiParkir.Tarif,
 		SaldoSebelum:   transaksiParkir.SaldoSebelum,

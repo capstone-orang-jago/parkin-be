@@ -63,6 +63,25 @@ definitions:
       petugas:
         $ref: '#/definitions/dto.UserResponseDTO'
     type: object
+  dto.MidtransCallbackDTO:
+    properties:
+      gross_amount:
+        type: string
+      order_id:
+        type: string
+      payment_type:
+        type: string
+      signature_key:
+        type: string
+      status_code:
+        type: string
+      transaction_id:
+        type: string
+      transaction_status:
+        type: string
+      transaction_time:
+        type: string
+    type: object
   dto.OtpCodeRequestDTO:
     properties:
       telephone:
@@ -107,6 +126,42 @@ definitions:
         type: string
       user_id:
         type: string
+    type: object
+  dto.TopUpRequestDTO:
+    properties:
+      metode_pembayaran:
+        type: string
+      nominal:
+        type: integer
+    required:
+    - metode_pembayaran
+    - nominal
+    type: object
+  dto.TopUpResponseDTO:
+    properties:
+      id:
+        type: string
+      metodePembayaran:
+        type: string
+      midtransOrderID:
+        type: string
+      midtransTransactionID:
+        type: string
+      nominal:
+        format: int64
+        type: integer
+      paidAt:
+        type: string
+      rawCallBack:
+        type: string
+      snapRedirectURL:
+        type: string
+      snapToken:
+        type: string
+      status:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserResponseDTO'
     type: object
   dto.TransaksiParkirRequestDTO:
     properties:
@@ -567,6 +622,37 @@ paths:
       summary: Get lokasi parkir by Petugas ID
       tags:
       - lokasi-parkir
+  /midtrans/callback:
+    post:
+      consumes:
+      - application/json
+      description: Handle the payment callback from Midtrans and update top-up status
+        accordingly
+      parameters:
+      - description: Midtrans Callback Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MidtransCallbackDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      summary: Handle Midtrans payment callback
+      tags:
+      - Midtrans
   /officer/qr-code:
     post:
       consumes:
@@ -591,6 +677,70 @@ paths:
       summary: Create a new QR session for petugas
       tags:
       - qr-session
+  /topup/{order_id}/status:
+    get:
+      consumes:
+      - application/json
+      description: Get the status of a top-up transaction by its order ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Get the status of a top-up transaction
+      tags:
+      - Midtrans
+  /topup/create:
+    post:
+      consumes:
+      - application/json
+      description: Initiate a new top-up transaction with Midtrans and get the payment
+        URL
+      parameters:
+      - description: Top-Up Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TopUpRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TopUpResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Initiate a new top-up transaction
+      tags:
+      - Midtrans
   /transaksi-parkir:
     post:
       consumes:

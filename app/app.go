@@ -28,6 +28,9 @@ type App struct {
 	OtpCodeHandler            domain.OtpCodeHandler
 	OtpCodeUsecase            domain.OtpCodeUsecase
 	OtpCodeRepository         domain.OtpCodeRepository
+	TopUpRepository           domain.TopUpRepository
+	MidtransUsecase           domain.MidtransUsecase
+	MidtransHandler           domain.MidtransHandler
 }
 
 func InitApp(cfg *config.Config, waService domain.WaService) App {
@@ -40,7 +43,7 @@ func InitApp(cfg *config.Config, waService domain.WaService) App {
 	lokasiParkirRepo := repository.NewLokasiParkirRepository(db)
 	qrSessionRepo := repository.NewQRSessionRepository(db)
 	otpCodeRepo := repository.NewOtpCodeRepository(db)
-
+	topUpRepo := repository.NewTopUpRepository(db)
 	userUsecase := usecase.NewUserUsecase(userRepo)
 	otpCodeUsecase := usecase.NewOtpCodeUsecase(otpCodeRepo, userRepo, waService)
 	authUsecase := usecase.NewAuthUsecase(authRepo, userRepo, transactor, otpCodeUsecase)
@@ -56,6 +59,9 @@ func InitApp(cfg *config.Config, waService domain.WaService) App {
 	transaksiParkirRepo := repository.NewTransaksiParkirRepository(db)
 	transaksiParkirUsecase := usecase.NewTransaksiParkirUsecase(transaksiParkirRepo, userUsecase, qrSessionUsecase, lokasiParkirUsecase, transactor)
 	transaksiParkirHandler := handler.NewTransaksiParkirHandler(transaksiParkirUsecase)
+
+	midtransUsecase := usecase.NewMidtransUsecase(userRepo, topUpRepo, transactor, config.AppConfig.MIDTRANS_SERVER_KEY)
+	midtransHandler := handler.NewMidtransHandler(midtransUsecase)
 	return App{
 		UserHandler:               userHandler,
 		UserUsecase:               userUsecase,
@@ -75,5 +81,8 @@ func InitApp(cfg *config.Config, waService domain.WaService) App {
 		TransaksiParkirRepository: transaksiParkirRepo,
 		TransaksiParkirUsecase:    transaksiParkirUsecase,
 		TransaksiParkirHandler:    transaksiParkirHandler,
+		TopUpRepository:           topUpRepo,
+		MidtransUsecase:           midtransUsecase,
+		MidtransHandler:           midtransHandler,
 	}
 }

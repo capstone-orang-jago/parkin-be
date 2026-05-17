@@ -51,6 +51,7 @@ func RegisterRoutes(application app.App) http.Handler {
 
 	// PUBLIC ROUTES
 	v1.GET("/health", health)
+	v1.POST("/midtrans/callback", application.MidtransHandler.MidtransCallback)
 
 	auth := v1.Group("/auth")
 	{
@@ -73,8 +74,10 @@ func RegisterRoutes(application app.App) http.Handler {
 		user.DELETE("/:id", application.UserHandler.DeleteUser)
 		user.GET("/me/saldo", application.UserHandler.GetUserSaldo)
 		user.PUT("/me/saldo", application.UserHandler.DeductUserSaldo)
+
 		user.GET("/profile", application.UserHandler.GetUserProfile)
 		user.GET("/transactions", application.TransaksiParkirHandler.GetAllTransaksiParkirByPenggunaID)
+		user.POST("/parking/pay", application.TransaksiParkirHandler.CreateTransaksiParkir)
 	}
 
 	lokasiParkir := v1.Group("/lokasi-parkir")
@@ -97,8 +100,14 @@ func RegisterRoutes(application app.App) http.Handler {
 	transaksiParkir := v1.Group("/transaksi-parkir")
 	transaksiParkir.Use(middlewares.AuthMiddleware())
 	{
-		transaksiParkir.POST("/", application.TransaksiParkirHandler.CreateTransaksiParkir)
 		transaksiParkir.GET("/:id", application.TransaksiParkirHandler.GetTransaksiParkirByID)
+	}
+
+	topup := v1.Group("/topup")
+	topup.Use(middlewares.AuthMiddleware())
+	{
+		topup.POST("/create", application.MidtransHandler.CreateTopUp)
+		topup.GET("/:order_id/status", application.MidtransHandler.GetTopUpStatus)
 	}
 	return router
 }

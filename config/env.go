@@ -8,15 +8,16 @@ import (
 )
 
 type Config struct {
-	DBHost         string
-	DBPort         string
-	DBUser         string
-	DBPassword     string
-	DBName         string
-	JWTSecret      string
-	SERVER_KEY     string
-	AllowedOrigins []string
-	QR_SECRET_KEY  string
+	DBHost              string
+	DBPort              string
+	DBUser              string
+	DBPassword          string
+	DBName              string
+	JWTSecret           string
+	SERVER_KEY          string
+	AllowedOrigins      []string
+	QR_SECRET_KEY       string
+	MIDTRANS_SERVER_KEY string
 }
 
 var AppConfig *Config
@@ -29,13 +30,14 @@ func LoadConfig() {
 	}
 
 	AppConfig = &Config{
-		DBHost:         os.Getenv("DB_HOST"),
-		DBPort:         os.Getenv("DB_PORT"),
-		DBUser:         os.Getenv("DB_USER"),
-		DBPassword:     os.Getenv("DB_PASSWORD"),
-		DBName:         os.Getenv("DB_NAME"),
-		JWTSecret:      os.Getenv("JWT_SECRET"),
-		AllowedOrigins: []string{os.Getenv("DEV_ORIGIN"), os.Getenv("PROD_ORIGIN")},
-		QR_SECRET_KEY:  os.Getenv("QR_SECRET_KEY"),
+		DBHost:              os.Getenv("DB_HOST"),
+		DBPort:              os.Getenv("DB_PORT"),
+		DBUser:              os.Getenv("DB_USER"),
+		DBPassword:          os.Getenv("DB_PASSWORD"),
+		DBName:              os.Getenv("DB_NAME"),
+		JWTSecret:           os.Getenv("JWT_SECRET"),
+		AllowedOrigins:      []string{os.Getenv("DEV_ORIGIN"), os.Getenv("PROD_ORIGIN")},
+		QR_SECRET_KEY:       os.Getenv("QR_SECRET_KEY"),
+		MIDTRANS_SERVER_KEY: os.Getenv("MIDTRANS_SERVER_KEY"),
 	}
 }

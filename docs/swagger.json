@@ -603,6 +603,52 @@
                 }
             }
         },
+        "/midtrans/callback": {
+            "post": {
+                "description": "Handle the payment callback from Midtrans and update top-up status accordingly",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Midtrans"
+                ],
+                "summary": "Handle Midtrans payment callback",
+                "parameters": [
+                    {
+                        "description": "Midtrans Callback Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MidtransCallbackDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/officer/qr-code": {
             "post": {
                 "security": [
@@ -625,6 +671,106 @@
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/dto.QRSessionResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/topup/create": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Initiate a new top-up transaction with Midtrans and get the payment URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Midtrans"
+                ],
+                "summary": "Initiate a new top-up transaction",
+                "parameters": [
+                    {
+                        "description": "Top-Up Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.TopUpRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TopUpResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/topup/{order_id}/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the status of a top-up transaction by its order ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Midtrans"
+                ],
+                "summary": "Get the status of a top-up transaction",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "order_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
                         }
                     },
                     "400": {
@@ -1224,6 +1370,35 @@
                 }
             }
         },
+        "dto.MidtransCallbackDTO": {
+            "type": "object",
+            "properties": {
+                "gross_amount": {
+                    "type": "string"
+                },
+                "order_id": {
+                    "type": "string"
+                },
+                "payment_type": {
+                    "type": "string"
+                },
+                "signature_key": {
+                    "type": "string"
+                },
+                "status_code": {
+                    "type": "string"
+                },
+                "transaction_id": {
+                    "type": "string"
+                },
+                "transaction_status": {
+                    "type": "string"
+                },
+                "transaction_time": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.OtpCodeRequestDTO": {
             "type": "object",
             "properties": {
@@ -1291,6 +1466,60 @@
                 },
                 "user_id": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.TopUpRequestDTO": {
+            "type": "object",
+            "required": [
+                "metode_pembayaran",
+                "nominal"
+            ],
+            "properties": {
+                "metode_pembayaran": {
+                    "type": "string"
+                },
+                "nominal": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.TopUpResponseDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "metodePembayaran": {
+                    "type": "string"
+                },
+                "midtransOrderID": {
+                    "type": "string"
+                },
+                "midtransTransactionID": {
+                    "type": "string"
+                },
+                "nominal": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "rawCallBack": {
+                    "type": "string"
+                },
+                "snapRedirectURL": {
+                    "type": "string"
+                },
+                "snapToken": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/dto.UserResponseDTO"
                 }
             }
         },

@@ -32,6 +32,7 @@ type (
 		DeleteUser(ctx context.Context, id string) error
 		GetUserSaldo(ctx context.Context, id string) (int64, error)
 		DeductUserSaldo(ctx context.Context, id string, amount int64) error
+		AddUserSaldo(ctx context.Context, id string, amount int64) error
 		GetUserProfile(ctx context.Context, id string) (*User, error)
 	}
 

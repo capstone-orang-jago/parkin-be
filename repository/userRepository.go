@@ -6,6 +6,7 @@ import (
 	"database/sql"
 
 	"github.com/capstone-orang-jago/parkin-be/domain"
+	"github.com/capstone-orang-jago/parkin-be/helpers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -188,9 +189,26 @@ func (repo *userRepository) DeductUserSaldo(ctx context.Context, id string, amou
 			SET saldo = saldo - $1, updated_at = NOW() 
 			WHERE id = $2
 			`
-	_, err := repo.db.ExecContext(ctx, query, amount, id)
+
+	exec := helpers.GetExecutor(ctx, repo.db)
+	_, err := exec.ExecContext(ctx, query, amount, id)
 	if err != nil {
 		logrus.WithError(err).Error("repo.DeductUserSaldo: failed to deduct user saldo")
+		return err
+	}
+	return nil
+}
+
+func (repo *userRepository) AddUserSaldo(ctx context.Context, id string, amount int64) error {
+	query := `
+			UPDATE users 
+			SET saldo = saldo + $1, updated_at = NOW() 
+			WHERE id = $2
+			`
+	exec := helpers.GetExecutor(ctx, repo.db)
+	_, err := exec.ExecContext(ctx, query, amount, id)
+	if err != nil {
+		logrus.WithError(err).Error("repo.AddUserSaldo: failed to add user saldo")
 		return err
 	}
 	return nil

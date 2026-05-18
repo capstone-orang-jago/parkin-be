@@ -32,7 +32,7 @@ func NewMidtransHandler(midtransUsecase domain.MidtransUsecase) domain.MidtransH
 // @Failure 500 {object} domain.HttpResponse
 // @Router /topup/create [post]
 func (handler *midtransHandler) CreateTopUp(c *gin.Context) {
-	userID := c.GetString("userID")
+	userID := c.GetString("sub")
 
 	var req dto.TopUpRequestDTO
 	if err := helpers.DecodeJSON(c, &req); err != nil {
@@ -72,7 +72,7 @@ func (handler *midtransHandler) CreateTopUp(c *gin.Context) {
 // @Router /midtrans/callback [post]
 func (handler *midtransHandler) MidtransCallback(c *gin.Context) {
 	var callbackReq dto.MidtransCallbackDTO
-	if err := helpers.DecodeJSON(c, &callbackReq); err != nil {
+	if err := c.ShouldBindBodyWithJSON(&callbackReq); err != nil {
 		helpers.Response(c, domain.HttpResponse{
 			Code:    http.StatusBadRequest,
 			Message: "invalid callback request body: " + err.Error(),

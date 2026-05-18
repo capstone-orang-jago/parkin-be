@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 
 	"github.com/capstone-orang-jago/parkin-be/domain"
 	"github.com/capstone-orang-jago/parkin-be/helpers"
@@ -20,8 +21,8 @@ func NewTopUpRepository(db *sql.DB) *topUpRepository {
 }
 
 func (repo *topUpRepository) CreateTopUp(ctx context.Context, topUp *domain.TopUp) error {
-	query := `INSERT INTO topup_saldo (pengguna_id, nominal, metode_pembayaran, midtrans_order_id, midtrans_transaction_id, status, snap_token, snap_redirect_url, raw_callback, paid_at) 
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`
+	query := `INSERT INTO topup_saldo (pengguna_id, nominal, metode_pembayaran, midtrans_order_id, midtrans_transaction_id, status, snap_token, snap_redirect_url, raw_callback, paid_at, created_at, updated_at) 
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW()) RETURNING id`
 
 	exec := helpers.GetExecutor(ctx, repo.db)
 	err := exec.QueryRowContext(ctx, query,
@@ -48,10 +49,16 @@ func (repo *topUpRepository) GetTopUpByMidtransOrderID(ctx context.Context, midt
 	FROM topup_saldo tu 
 	LEFT JOIN users u ON tu.pengguna_id = u.id
 	WHERE tu.midtrans_order_id = $1`
-	row := repo.db.QueryRowContext(ctx, query, midtransOrderID)
+
+	exec := helpers.GetExecutor(ctx, repo.db)
+	row := exec.QueryRowContext(ctx, query, midtransOrderID)
 
 	topUp := &domain.TopUp{}
 	topUp.User = &domain.User{}
+
+	var rawCallbackTmp []byte
+	var paidAtTmp sql.NullTime
+
 	err := row.Scan(
 		&topUp.ID,
 		&topUp.Nominal,
@@ -61,8 +68,8 @@ func (repo *topUpRepository) GetTopUpByMidtransOrderID(ctx context.Context, midt
 		&topUp.Status,
 		&topUp.SnapToken,
 		&topUp.SnapRedirectURL,
-		&topUp.RawCallBack,
-		&topUp.PaidAt,
+		&rawCallbackTmp,
+		&paidAtTmp,
 		&topUp.User.ID,
 		&topUp.User.Name,
 		&topUp.User.Email,
@@ -74,6 +81,12 @@ func (repo *topUpRepository) GetTopUpByMidtransOrderID(ctx context.Context, midt
 		}
 		return nil, err
 	}
+
+	topUp.RawCallBack = json.RawMessage(rawCallbackTmp)
+	if paidAtTmp.Valid {
+		topUp.PaidAt = paidAtTmp.Time
+	}
+
 	return topUp, nil
 }
 

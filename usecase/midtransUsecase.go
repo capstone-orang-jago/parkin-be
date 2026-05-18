@@ -81,13 +81,14 @@ func (usecase *midtransUsecase) InitiateTopUp(ctx context.Context, userID string
 	}
 
 	topUpData := &domain.TopUp{
-		UserID:           userID,
-		Nominal:          req.Nominal,
-		MetodePembayaran: req.MetodePembayaran,
-		MidtransOrderID:  orderID,
-		Status:           "pending",
-		SnapToken:        snapResp.Token,
-		SnapRedirectURL:  snapResp.RedirectURL,
+		UserID:                userID,
+		Nominal:               req.Nominal,
+		MetodePembayaran:      req.MetodePembayaran,
+		MidtransOrderID:       orderID,
+		MidtransTransactionID: orderID,
+		Status:                "pending",
+		SnapToken:             snapResp.Token,
+		SnapRedirectURL:       snapResp.RedirectURL,
 	}
 
 	if err := usecase.topUpRepo.CreateTopUp(ctx, topUpData); err != nil {
@@ -96,13 +97,17 @@ func (usecase *midtransUsecase) InitiateTopUp(ctx context.Context, userID string
 	}
 
 	response := &dto.TopUpResponseDTO{
-		ID:               topUpData.ID,
-		Nominal:          topUpData.Nominal,
-		MetodePembayaran: topUpData.MetodePembayaran,
-		MidtransOrderID:  topUpData.MidtransOrderID,
-		Status:           topUpData.Status,
-		SnapToken:        topUpData.SnapToken,
-		SnapRedirectURL:  topUpData.SnapRedirectURL,
+		ID: topUpData.ID,
+		User: &dto.UserResponseDTO{
+			ID: userID,
+		},
+		Nominal:               topUpData.Nominal,
+		MetodePembayaran:      topUpData.MetodePembayaran,
+		MidtransOrderID:       topUpData.MidtransOrderID,
+		MidtransTransactionID: topUpData.MidtransOrderID,
+		Status:                topUpData.Status,
+		SnapToken:             topUpData.SnapToken,
+		SnapRedirectURL:       topUpData.SnapRedirectURL,
 	}
 	return response, nil
 }
@@ -140,7 +145,7 @@ func (usecase *midtransUsecase) TopUpSaldo(ctx context.Context, cb dto.MidtransC
 		rawCallback, _ := json.Marshal(cb)
 		topUp.RawCallBack = rawCallback
 		topUp.MidtransTransactionID = cb.TransactionID
-		topUp.Status = cb.TransactionStatus
+		topUp.Status = "sukses"
 
 		switch cb.TransactionStatus {
 		case "settlement", "capture":
@@ -148,7 +153,7 @@ func (usecase *midtransUsecase) TopUpSaldo(ctx context.Context, cb dto.MidtransC
 			user.UpdatedAt = time.Now()
 			topUp.PaidAt = time.Now()
 
-			err = usecase.userRepo.UpdateUser(txCtx, user, user.ID)
+			err = usecase.userRepo.AddUserSaldo(txCtx, user.ID, topUp.Nominal)
 			if err != nil {
 				return err
 			}

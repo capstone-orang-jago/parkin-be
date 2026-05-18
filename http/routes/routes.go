@@ -64,20 +64,43 @@ func RegisterRoutes(application app.App) http.Handler {
 		auth.POST("/logout", middlewares.AuthMiddleware(), application.AuthHandler.Logout)
 	}
 
-	user := v1.Group("/users")
+	user := v1.Group("/user")
 	user.Use(middlewares.AuthMiddleware()).Use(middlewares.RoleMiddleware(domain.RolePengguna))
 	{
-		user.GET("/", application.UserHandler.GetAllUsers)
-		user.GET("/:id", application.UserHandler.GetUserByID)
-		user.POST("/", application.UserHandler.CreateUser)
-		user.PUT("/:id", application.UserHandler.UpdateUser)
-		user.DELETE("/:id", application.UserHandler.DeleteUser)
-		user.GET("/me/saldo", application.UserHandler.GetUserSaldo)
-		user.PUT("/me/saldo", application.UserHandler.DeductUserSaldo)
-
 		user.GET("/profile", application.UserHandler.GetUserProfile)
-		user.GET("/transactions", application.TransaksiParkirHandler.GetAllTransaksiParkirByPenggunaID)
+		user.GET("/transactions", application.TransaksiParkirHandler.GetAllTransaksiParkirByUserID)
+		user.GET("/transactions/:id", application.TransaksiParkirHandler.GetTransaksiParkirByID)
 		user.POST("/parking/pay", application.TransaksiParkirHandler.CreateTransaksiParkir)
+		user.POST("/topup/create", application.MidtransHandler.CreateTopUp)
+		user.GET("/topup/:order_id/status", application.MidtransHandler.GetTopUpStatus)
+
+	}
+
+	officer := v1.Group("/officer")
+	officer.Use(middlewares.AuthMiddleware()).Use(middlewares.RoleMiddleware(domain.RolePetugas))
+	{
+		officer.GET("/profile", application.UserHandler.GetUserProfile)
+		officer.GET("/dashboard", application.TransaksiParkirHandler.GetOfficerDashboard)
+		officer.POST("/qr-code", application.QRSessionHandler.CreateQRSession)
+		officer.GET("/transactions", application.TransaksiParkirHandler.GetAllTransaksiParkirByUserID)
+	}
+
+	admin := v1.Group("/admin")
+	admin.Use(middlewares.AuthMiddleware()).Use(middlewares.RoleMiddleware("admin"))
+	{
+		admin.GET("/", application.UserHandler.GetAllUsers)
+		admin.GET("/:id", application.UserHandler.GetUserByID)
+		admin.POST("/", application.UserHandler.CreateUser)
+		admin.PUT("/:id", application.UserHandler.UpdateUser)
+		admin.DELETE("/:id", application.UserHandler.DeleteUser)
+		admin.GET("/me/saldo", application.UserHandler.GetUserSaldo)
+		admin.PUT("/me/saldo", application.UserHandler.DeductUserSaldo)
+	}
+
+	transaksiParkir := v1.Group("/transaksi-parkir")
+	transaksiParkir.Use(middlewares.AuthMiddleware())
+	{
+		transaksiParkir.GET("/:id", application.TransaksiParkirHandler.GetTransaksiParkirByID)
 	}
 
 	lokasiParkir := v1.Group("/lokasi-parkir")
@@ -91,23 +114,5 @@ func RegisterRoutes(application app.App) http.Handler {
 		lokasiParkir.DELETE("/:id", application.LokasiParkirHandler.DeleteLokasiParkir)
 	}
 
-	officer := v1.Group("/officer")
-	officer.Use(middlewares.AuthMiddleware())
-	{
-		officer.POST("/qr-code", application.QRSessionHandler.CreateQRSession)
-	}
-
-	transaksiParkir := v1.Group("/transaksi-parkir")
-	transaksiParkir.Use(middlewares.AuthMiddleware())
-	{
-		transaksiParkir.GET("/:id", application.TransaksiParkirHandler.GetTransaksiParkirByID)
-	}
-
-	topup := v1.Group("/topup")
-	topup.Use(middlewares.AuthMiddleware())
-	{
-		topup.POST("/create", application.MidtransHandler.CreateTopUp)
-		topup.GET("/:order_id/status", application.MidtransHandler.GetTopUpStatus)
-	}
 	return router
 }

@@ -95,7 +95,7 @@ func (usecase *qrSessionUsecase) CreateQRSession(ctx context.Context, petugasID 
 		ID:        result.ID,
 		Payload:   result.Payload,
 		HMAC:      result.HMAC,
-		ExpiredAt: result.ExpiredAt,
+		ExpiredAt: helpers.FormatTime(result.ExpiredAt),
 		IsRevoked: result.IsRevoked,
 		LokasiParkir: &dto.LokasiParkirResponseDTO{
 			ID:         result.LokasiParkir.ID,
@@ -130,7 +130,7 @@ func (usecase *qrSessionUsecase) GetActiveQRByPetugasID(ctx context.Context, pet
 		ID:        data.ID,
 		Payload:   data.Payload,
 		HMAC:      data.HMAC,
-		ExpiredAt: data.ExpiredAt,
+		ExpiredAt: helpers.FormatTime(data.ExpiredAt),
 		IsRevoked: data.IsRevoked,
 		LokasiParkir: &dto.LokasiParkirResponseDTO{
 			ID:         data.LokasiParkir.ID,
@@ -185,7 +185,7 @@ func (usecase *qrSessionUsecase) GetQRSessionByPayload(ctx context.Context, payl
 		ID:        qrSession.ID,
 		Payload:   qrSession.Payload,
 		HMAC:      qrSession.HMAC,
-		ExpiredAt: qrSession.ExpiredAt,
+		ExpiredAt: helpers.FormatTime(qrSession.ExpiredAt),
 		IsRevoked: qrSession.IsRevoked,
 		LokasiParkir: &dto.LokasiParkirResponseDTO{
 			ID:         qrSession.LokasiParkir.ID,

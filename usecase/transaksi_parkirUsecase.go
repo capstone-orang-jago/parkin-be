@@ -188,7 +188,7 @@ func (usecase *transaksiParkirUsecase) CreateTransaksiParkir(ctx context.Context
 		SaldoSebelum:   transaksiParkir.SaldoSebelum,
 		SaldoSesudah:   transaksiParkir.SaldoSesudah,
 		Status:         transaksiParkir.Status,
-		CreatedAt:      transaksiParkir.CreatedAt,
+		CreatedAt:      helpers.FormatTime(transaksiParkir.CreatedAt),
 	}
 
 	return res, nil
@@ -228,7 +228,7 @@ func (usecase *transaksiParkirUsecase) GetTransaksiParkirByID(ctx context.Contex
 		SaldoSebelum:   transaksiParkir.SaldoSebelum,
 		SaldoSesudah:   transaksiParkir.SaldoSesudah,
 		Status:         transaksiParkir.Status,
-		CreatedAt:      transaksiParkir.CreatedAt,
+		CreatedAt:      helpers.FormatTime(transaksiParkir.CreatedAt),
 	}
 
 	return res, nil
@@ -270,9 +270,50 @@ func (usecase *transaksiParkirUsecase) GetAllTransaksiParkirByUserID(ctx context
 			SaldoSebelum:   transaksi.SaldoSebelum,
 			SaldoSesudah:   transaksi.SaldoSesudah,
 			Status:         transaksi.Status,
-			CreatedAt:      transaksi.CreatedAt,
+			CreatedAt:      helpers.FormatTime(transaksi.CreatedAt),
 		})
 	}
 
 	return res, nil
+}
+
+func (usecase *transaksiParkirUsecase) GetOfficerDashboard(ctx context.Context, officerID string) (*dto.OfficerDashboardResponseDTO, error) {
+	userProfile, err := usecase.userRepo.GetUserProfile(ctx, officerID, "petugas")
+	if err != nil || userProfile == nil || userProfile.LokasiParkir == nil {
+		return nil, errors.New("petugas tidak ditemukan atau tidak memiliki lokasi parkir")
+	}
+
+	lokasiID := userProfile.LokasiParkir.ID
+
+	totalMotor, totalMobil, totalPendapatan, err := usecase.transaksiParkirRepo.GetWeeklyDashboardData(ctx, lokasiID)
+	if err != nil {
+		logrus.WithError(err).Error("usecase.GetOfficerDashboard: failed to get weekly stats")
+		return nil, err
+	}
+
+	recentTx, err := usecase.transaksiParkirRepo.GetAllTransaksiParkirByUserID(ctx, officerID, "petugas", 1, 5, "semua")
+	if err != nil {
+		logrus.WithError(err).Error("usecase.GetOfficerDashboard: failed to get recent transactions")
+		return nil, err
+	}
+
+	var txDTOs []*dto.OfficerRecentTransactionDTO
+	for _, t := range recentTx {
+		txDTOs = append(txDTOs, &dto.OfficerRecentTransactionDTO{
+			ID:             t.ID,
+			Waktu:          helpers.FormatTime(t.CreatedAt),
+			JenisKendaraan: t.JenisKendaraan,
+			Tarif:          t.Tarif,
+		})
+	}
+
+	return &dto.OfficerDashboardResponseDTO{
+		NamaPetugas:     userProfile.Name,
+		NamaLokasi:      userProfile.LokasiParkir.NamaLokasi,
+		Alamat:          userProfile.LokasiParkir.Alamat,
+		TotalMotor:      totalMotor,
+		TotalMobil:      totalMobil,
+		TotalPendapatan: totalPendapatan,
+		Transactions:    txDTOs,
+	}, nil
 }

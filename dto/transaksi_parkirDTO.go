@@ -1,9 +1,5 @@
 package dto
 
-import (
-	"time"
-)
-
 type TransaksiParkirRequestDTO struct {
 	QRPayload      string `json:"qr_payload" binding:"required"`
 	JenisKendaraan string `json:"jenis_kendaraan" binding:"required"`
@@ -19,5 +15,5 @@ type TransaksiParkirResponseDTO struct {
 	SaldoSebelum   int64                    `json:"saldo_sebelum"`
 	SaldoSesudah   int64                    `json:"saldo_sesudah"`
 	Status         string                   `json:"status"`
-	CreatedAt      time.Time                `json:"created_at"`
+	CreatedAt      string                   `json:"created_at"`
 }

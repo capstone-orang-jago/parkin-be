@@ -53,7 +53,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		role, ok := token["role"].(string)
+		roleRaw, ok := token["role"].(string)
 		if !ok {
 			helpers.Response(c, domain.HttpResponse{
 				Code:    401,
@@ -63,8 +63,18 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		userRole := domain.UserRole(roleRaw)
+		if userRole != domain.RoleAdmin && userRole != domain.RolePetugas && userRole != domain.RolePengguna && userRole != domain.RoleDishub {
+			helpers.Response(c, domain.HttpResponse{
+				Code:    401,
+				Message: "invalid user role in token claims",
+			})
+			c.Abort()
+			return
+		}
+
 		c.Set("sub", userID)
-		c.Set("role", domain.UserRole(role))
+		c.Set("role", string(userRole))
 		c.Next()
 	}
 }

@@ -20,18 +20,23 @@ func RoleMiddleware(allowedRoles ...domain.UserRole) gin.HandlerFunc {
 			return
 		}
 
-		userRole, ok := role.(domain.UserRole)
-		if !ok {
+		var userRoleStr string
+		switch v := role.(type) {
+		case string:
+			userRoleStr = v
+		case domain.UserRole:
+			userRoleStr = string(v)
+		default:
 			helpers.Response(c, domain.HttpResponse{
 				Code:    http.StatusForbidden,
-				Message: "invalid role",
+				Message: "invalid role type in context",
 			})
 			c.Abort()
 			return
 		}
 
 		for _, allowed := range allowedRoles {
-			if userRole == allowed {
+			if userRoleStr == string(allowed) {
 				c.Next()
 				return
 			}

@@ -31,6 +31,9 @@ type App struct {
 	TopUpRepository           domain.TopUpRepository
 	MidtransUsecase           domain.MidtransUsecase
 	MidtransHandler           domain.MidtransHandler
+	DashboardHandler          domain.DashboardHandler
+	DashboardUsecase          domain.DashboardUsecase
+	DashboardRepository       domain.DashboardRepository
 }
 
 func InitApp(cfg *config.Config, waService domain.WaService) App {
@@ -62,6 +65,10 @@ func InitApp(cfg *config.Config, waService domain.WaService) App {
 
 	midtransUsecase := usecase.NewMidtransUsecase(userRepo, topUpRepo, transactor, config.AppConfig.MIDTRANS_SERVER_KEY)
 	midtransHandler := handler.NewMidtransHandler(midtransUsecase)
+
+	dashBoardRepo := repository.NewDashboardRepository(db)
+	dashboardUsecase := usecase.NewDashboardUsecase(dashBoardRepo, transaksiParkirRepo, userRepo)
+	dashboardHandler := handler.NewDashboardHandler(dashboardUsecase)
 	return App{
 		UserHandler:               userHandler,
 		UserUsecase:               userUsecase,
@@ -84,5 +91,8 @@ func InitApp(cfg *config.Config, waService domain.WaService) App {
 		TopUpRepository:           topUpRepo,
 		MidtransUsecase:           midtransUsecase,
 		MidtransHandler:           midtransHandler,
+		DashboardHandler:          dashboardHandler,
+		DashboardUsecase:          dashboardUsecase,
+		DashboardRepository:       dashBoardRepo,
 	}
 }

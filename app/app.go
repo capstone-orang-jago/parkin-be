@@ -48,7 +48,7 @@ func InitApp(cfg *config.Config, waService domain.WaService) App {
 	otpCodeUsecase := usecase.NewOtpCodeUsecase(otpCodeRepo, userRepo, waService)
 	authUsecase := usecase.NewAuthUsecase(authRepo, userRepo, transactor, otpCodeUsecase)
 	lokasiParkirUsecase := usecase.NewLokasiParkirUsecase(lokasiParkirRepo)
-	qrSessionUsecase := usecase.NewQRSessionUsecase(qrSessionRepo, lokasiParkirUsecase, transactor, config.AppConfig.QR_SECRET_KEY)
+	qrSessionUsecase := usecase.NewQRSessionUsecase(qrSessionRepo, lokasiParkirRepo, transactor, config.AppConfig.QR_SECRET_KEY)
 
 	userHandler := handler.NewUserHandler(userUsecase)
 	otpCodeHandler := handler.NewOtpCodeHandler(otpCodeUsecase)
@@ -57,7 +57,7 @@ func InitApp(cfg *config.Config, waService domain.WaService) App {
 	qrSessionHandler := handler.NewQRSessionHandler(qrSessionUsecase)
 
 	transaksiParkirRepo := repository.NewTransaksiParkirRepository(db)
-	transaksiParkirUsecase := usecase.NewTransaksiParkirUsecase(transaksiParkirRepo, userUsecase, qrSessionUsecase, lokasiParkirUsecase, transactor)
+	transaksiParkirUsecase := usecase.NewTransaksiParkirUsecase(transaksiParkirRepo, userRepo, qrSessionRepo, lokasiParkirRepo, transactor)
 	transaksiParkirHandler := handler.NewTransaksiParkirHandler(transaksiParkirUsecase)
 
 	midtransUsecase := usecase.NewMidtransUsecase(userRepo, topUpRepo, transactor, config.AppConfig.MIDTRANS_SERVER_KEY)

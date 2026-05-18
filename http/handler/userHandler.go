@@ -28,7 +28,7 @@ func NewUserHandler(userUsecase domain.UserUsecase) domain.UserHandler {
 // @Success 200 {array} dto.UserResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /users [get]
+// @Router /user [get]
 func (handler *userHandler) GetAllUsers(c *gin.Context) {
 	users, err := handler.userUsecase.GetAllUsers(c.Request.Context())
 	if err != nil {
@@ -56,7 +56,7 @@ func (handler *userHandler) GetAllUsers(c *gin.Context) {
 // @Success 200 {object} dto.UserResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /users/{id} [get]
+// @Router /user/{id} [get]
 func (handler *userHandler) GetUserByID(c *gin.Context) {
 	id := c.Param("id")
 	user, err := handler.userUsecase.GetUserByID(c.Request.Context(), id)
@@ -84,7 +84,7 @@ func (handler *userHandler) GetUserByID(c *gin.Context) {
 // @Success 200 {object} dto.UserResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /users/profile [get]
+// @Router /user/profile [get]
 func (handler *userHandler) GetUserProfile(c *gin.Context) {
 	userId := c.GetString("sub")
 
@@ -115,7 +115,7 @@ func (handler *userHandler) GetUserProfile(c *gin.Context) {
 // @Success 201 {object} dto.UserResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /users [post]
+// @Router /user [post]
 func (handler *userHandler) CreateUser(c *gin.Context) {
 	var req dto.UserRequestDTO
 	if err := helpers.DecodeJSON(c, &req); err != nil {
@@ -155,7 +155,7 @@ func (handler *userHandler) CreateUser(c *gin.Context) {
 // @Success 200 {object} dto.UserResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /users/{id} [put]
+// @Router /user/{id} [put]
 func (handler *userHandler) UpdateUser(c *gin.Context) {
 	id := c.Param("id")
 
@@ -194,7 +194,7 @@ func (handler *userHandler) UpdateUser(c *gin.Context) {
 // @Success 200 {object} domain.HttpResponse
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /users/{id} [delete]
+// @Router /user/{id} [delete]
 func (handler *userHandler) DeleteUser(c *gin.Context) {
 	id := c.Param("id")
 
@@ -222,7 +222,7 @@ func (handler *userHandler) DeleteUser(c *gin.Context) {
 // @Success 200 {object} domain.HttpResponse{data=int64}
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /users/me/saldo [get]
+// @Router /user/me/saldo [get]
 func (handler *userHandler) GetUserSaldo(c *gin.Context) {
 	userId := c.GetString("sub")
 
@@ -258,7 +258,7 @@ func (handler *userHandler) GetUserSaldo(c *gin.Context) {
 // @Success 200 {object} domain.HttpResponse
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /users/me/saldo [put]
+// @Router /user/me/saldo [put]
 func (handler *userHandler) DeductUserSaldo(c *gin.Context) {
 	userId := c.GetString("sub")
 

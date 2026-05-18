@@ -80,7 +80,7 @@ func RegisterRoutes(application app.App) http.Handler {
 	officer.Use(middlewares.AuthMiddleware()).Use(middlewares.RoleMiddleware(domain.RolePetugas))
 	{
 		officer.GET("/profile", application.UserHandler.GetUserProfile)
-		officer.GET("/dashboard", application.TransaksiParkirHandler.GetOfficerDashboard)
+		officer.GET("/dashboard", application.DashboardHandler.GetOfficerDashboard)
 		officer.POST("/qr-code", application.QRSessionHandler.CreateQRSession)
 		officer.GET("/transactions", application.TransaksiParkirHandler.GetAllTransaksiParkirByUserID)
 	}

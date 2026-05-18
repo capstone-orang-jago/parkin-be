@@ -35,20 +35,17 @@ type (
 		CreateTransaksiParkir(ctx context.Context, transaksi *TransaksiParkir) error
 		GetTransaksiParkirByID(ctx context.Context, id string) (*TransaksiParkir, error)
 		GetAllTransaksiParkirByUserID(ctx context.Context, userID, role string, page, limit int, filter string) ([]*TransaksiParkir, error)
-		GetWeeklyDashboardData(ctx context.Context, lokasiID string) (motor, mobil int, pendapatan int64, err error)
 	}
 
 	TransaksiParkirUsecase interface {
 		CreateTransaksiParkir(ctx context.Context, req *dto.TransaksiParkirRequestDTO, penggunaID string) (res *dto.TransaksiParkirResponseDTO, err error)
 		GetTransaksiParkirByID(ctx context.Context, id string) (*dto.TransaksiParkirResponseDTO, error)
 		GetAllTransaksiParkirByUserID(ctx context.Context, userID, role string, page, limit int, filter string) ([]*dto.TransaksiParkirResponseDTO, error)
-		GetOfficerDashboard(ctx context.Context, officerID string) (res *dto.OfficerDashboardResponseDTO, err error)
 	}
 
 	TransaksiParkirHandler interface {
 		CreateTransaksiParkir(c *gin.Context)
 		GetTransaksiParkirByID(c *gin.Context)
 		GetAllTransaksiParkirByUserID(c *gin.Context)
-		GetOfficerDashboard(c *gin.Context)
 	}
 )

@@ -168,19 +168,3 @@ func (repo *transaksiParkirRepository) GetAllTransaksiParkirByUserID(ctx context
 	}
 	return transaksis, nil
 }
-
-func (repo *transaksiParkirRepository) GetWeeklyDashboardData(ctx context.Context, lokasiID string) (motor, mobil int, pendapatan int64, err error) {
-	query := `
-		SELECT 
-			COUNT(CASE WHEN jenis_kendaraan = 'motor' THEN 1 END) as total_motor,
-			COUNT(CASE WHEN jenis_kendaraan = 'mobil' THEN 1 END) as total_mobil,
-			COALESCE(SUM(tarif), 0) as total_pendapatan
-		FROM transaksi_parkir
-		WHERE lokasi_id = $1 
-		AND status = 'sukses' 
-		AND created_at >= NOW() - INTERVAL '7 days'`
-
-	exec := helpers.GetExecutor(ctx, repo.db)
-	err = exec.QueryRowContext(ctx, query, lokasiID).Scan(&motor, &mobil, &pendapatan)
-	return
-}

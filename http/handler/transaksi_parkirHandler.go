@@ -141,32 +141,3 @@ func (handler *transaksiParkirHandler) GetAllTransaksiParkirByUserID(c *gin.Cont
 		Data:    transaksiParkirList,
 	})
 }
-
-// GetOfficerDashboard godoc
-// @Summary Get officer dashboard data
-// @Description Retrieve dashboard data for the authenticated parking officer, including profile info and recent transactions
-// @Tags Officer
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Success 200 {object} dto.OfficerDashboardResponseDTO
-// @Router /officer/dashboard [get]
-func (handler *transaksiParkirHandler) GetOfficerDashboard(c *gin.Context) {
-	officerID := c.GetString("sub")
-
-	dashboardData, err := handler.transaksiParkirUsecase.GetOfficerDashboard(c.Request.Context(), officerID)
-	if err != nil {
-		logrus.WithError(err).Error("handler.GetOfficerDashboard: failed to get officer dashboard data")
-		helpers.Response(c, domain.HttpResponse{
-			Code:    500,
-			Message: "failed to get dashboard data",
-		})
-		return
-	}
-
-	helpers.Response(c, domain.HttpResponse{
-		Code:    200,
-		Message: "dashboard data retrieved successfully",
-		Data:    dashboardData,
-	})
-}

@@ -34,18 +34,18 @@ type (
 	TransaksiParkirRepository interface {
 		CreateTransaksiParkir(ctx context.Context, transaksi *TransaksiParkir) error
 		GetTransaksiParkirByID(ctx context.Context, id string) (*TransaksiParkir, error)
-		GetAllTransaksiParkirByPenggunaID(ctx context.Context, penggunaID string, page, limit int, filter string) ([]*TransaksiParkir, error)
+		GetAllTransaksiParkirByUserID(ctx context.Context, userID, role string, page, limit int, filter string) ([]*TransaksiParkir, error)
 	}
 
 	TransaksiParkirUsecase interface {
 		CreateTransaksiParkir(ctx context.Context, req *dto.TransaksiParkirRequestDTO, penggunaID string) (res *dto.TransaksiParkirResponseDTO, err error)
 		GetTransaksiParkirByID(ctx context.Context, id string) (*dto.TransaksiParkirResponseDTO, error)
-		GetAllTransaksiParkirByPenggunaID(ctx context.Context, penggunaID string, page, limit int, filter string) ([]*dto.TransaksiParkirResponseDTO, error)
+		GetAllTransaksiParkirByUserID(ctx context.Context, userID, role string, page, limit int, filter string) ([]*dto.TransaksiParkirResponseDTO, error)
 	}
 
 	TransaksiParkirHandler interface {
 		CreateTransaksiParkir(c *gin.Context)
 		GetTransaksiParkirByID(c *gin.Context)
-		GetAllTransaksiParkirByPenggunaID(c *gin.Context)
+		GetAllTransaksiParkirByUserID(c *gin.Context)
 	}
 )

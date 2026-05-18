@@ -234,13 +234,13 @@ func (usecase *transaksiParkirUsecase) GetTransaksiParkirByID(ctx context.Contex
 	return res, nil
 }
 
-func (usecase *transaksiParkirUsecase) GetAllTransaksiParkirByPenggunaID(ctx context.Context, penggunaID string, page, limit int, filter string) ([]*dto.TransaksiParkirResponseDTO, error) {
-	transaksis, err := usecase.transaksiParkirRepo.GetAllTransaksiParkirByPenggunaID(ctx, penggunaID, page, limit, filter)
+func (usecase *transaksiParkirUsecase) GetAllTransaksiParkirByUserID(ctx context.Context, userID, role string, page, limit int, filter string) ([]*dto.TransaksiParkirResponseDTO, error) {
+	transaksis, err := usecase.transaksiParkirRepo.GetAllTransaksiParkirByUserID(ctx, userID, role, page, limit, filter)
 	if err != nil {
-		logrus.WithError(err).Error("usecase.GetAllTransaksiParkirByPenggunaID: failed to get transaksi parkir by pengguna ID")
+		logrus.WithError(err).Error("usecase.GetAllTransaksiParkirByUserID: failed to get transaksi parkir by user ID")
 		return nil, err
 	} else if transaksis == nil {
-		logrus.WithError(err).Info("usecase.GetAllTransaksiParkirByPenggunaID: no transaksi parkir found for pengguna ID")
+		logrus.WithError(err).Info("usecase.GetAllTransaksiParkirByUserID: no transaksi parkir found for user ID")
 		return nil, nil
 	}
 

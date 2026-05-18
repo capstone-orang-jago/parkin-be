@@ -102,7 +102,7 @@ func (repo *transaksiParkirRepository) GetTransaksiParkirByID(ctx context.Contex
 	return transaksi, nil
 }
 
-func (repo *transaksiParkirRepository) GetAllTransaksiParkirByPenggunaID(ctx context.Context, penggunaID string, page, limit int, filter string) (transaksis []*domain.TransaksiParkir, err error) {
+func (repo *transaksiParkirRepository) GetAllTransaksiParkirByUserID(ctx context.Context, userID, role string, page, limit int, filter string) (transaksis []*domain.TransaksiParkir, err error) {
 
 	offset := (page - 1) * limit
 
@@ -115,10 +115,15 @@ func (repo *transaksiParkirRepository) GetAllTransaksiParkirByPenggunaID(ctx con
         LEFT JOIN lokasi_parkir l ON t.lokasi_id = l.id
         LEFT JOIN users u ON t.pengguna_id = u.id
         LEFT JOIN users p ON t.petugas_id = p.id
-        WHERE t.pengguna_id = $1
     `
 
-	args := []interface{}{penggunaID}
+	if role == "pengguna" {
+		query += ` WHERE t.pengguna_id = $1`
+	} else {
+		query += ` WHERE t.petugas_id = $1`
+	}
+
+	args := []interface{}{userID}
 	argCount := 2
 
 	switch filter {
@@ -134,10 +139,10 @@ func (repo *transaksiParkirRepository) GetAllTransaksiParkirByPenggunaID(ctx con
 	exec := helpers.GetExecutor(ctx, repo.db)
 	rows, err := exec.QueryContext(ctx, query, args...)
 	if err == sql.ErrNoRows {
-		logrus.WithError(err).Info("repo.GetAllTransaksiParkirByPenggunaID: no transaksi parkir found for pengguna ID")
+		logrus.WithError(err).Info("repo.GetAllTransaksiParkirByUserID: no transaksi parkir found for user ID")
 		return nil, nil
 	} else if err != nil {
-		logrus.WithError(err).Error("repo.GetAllTransaksiParkirByPenggunaID: failed to get transaksi parkir by pengguna ID")
+		logrus.WithError(err).Error("repo.GetAllTransaksiParkirByUserID: failed to get transaksi parkir by user ID")
 		return nil, err
 	}
 	defer rows.Close()

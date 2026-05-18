@@ -87,24 +87,27 @@ func (handler *transaksiParkirHandler) GetTransaksiParkirByID(c *gin.Context) {
 	})
 }
 
-// GetAllTransaksiParkirByPenggunaID godoc
-// @Summary Get all parking transactions for the authenticated user
-// @Description Retrieve all parking transactions for the authenticated user with pagination and filtering
-// @Tags users
+// GetAllTransaksiParkirByUserID godoc
+// @Summary Get all parking transactions for a user
+// @Description Retrieve all parking transactions for the authenticated user, with optional pagination and filtering
+// @Tags Transaksi Parkir
 // @Accept json
 // @Produce json
-// @Param page query int false "Page number"
-// @Param limit query int false "Number of items per page"
-// @Param filter query string false "Filter by time range (semua, minggu, bulan)"
+// @Param page query int false "Page number for pagination"
+// @Param limit query int false "Number of items per page for pagination"
+// @Param filter query string false "Filter for transactions (semua, minggu, bulan)"
 // @Security BearerAuth
-// @Success 200 {object} domain.HttpResponse
-// @Router /users/transactions [get]
-func (handler *transaksiParkirHandler) GetAllTransaksiParkirByPenggunaID(c *gin.Context) {
+// @Success 200 {array} dto.TransaksiParkirResponseDTO
+// @Router /user/transactions [get]
+// @Router /officer/transactions [get]
+func (handler *transaksiParkirHandler) GetAllTransaksiParkirByUserID(c *gin.Context) {
 	userID := c.GetString("sub")
+	role := c.GetString("role")
+
 	var query domain.TransaksiQuery
 
 	if err := c.ShouldBindQuery(&query); err != nil {
-		logrus.WithError(err).Error("handler.GetAllTransaksiParkirByPenggunaID: failed to decode query parameters")
+		logrus.WithError(err).Error("handler.GetAllTransaksiParkirByUserID: failed to decode query parameters")
 		helpers.Response(c, domain.HttpResponse{
 			Code:    400,
 			Message: err.Error(),
@@ -122,9 +125,9 @@ func (handler *transaksiParkirHandler) GetAllTransaksiParkirByPenggunaID(c *gin.
 		query.Filter = "semua"
 	}
 
-	transaksiParkirList, err := handler.transaksiParkirUsecase.GetAllTransaksiParkirByPenggunaID(c.Request.Context(), userID, query.Page, query.Limit, query.Filter)
+	transaksiParkirList, err := handler.transaksiParkirUsecase.GetAllTransaksiParkirByUserID(c.Request.Context(), userID, role, query.Page, query.Limit, query.Filter)
 	if err != nil {
-		logrus.WithError(err).Error("handler.GetAllTransaksiParkirByPenggunaID: failed to get all transaksi parkir by pengguna ID")
+		logrus.WithError(err).Error("handler.GetAllTransaksiParkirByUserID: failed to get all transaksi parkir by user ID")
 		helpers.Response(c, domain.HttpResponse{
 			Code:    500,
 			Message: "failed to get transaksi parkir",

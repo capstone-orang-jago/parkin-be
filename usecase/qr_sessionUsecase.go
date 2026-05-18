@@ -16,18 +16,18 @@ import (
 )
 
 type qrSessionUsecase struct {
-	qrSessionRepo       domain.QRSessionRepository
-	parkirLokasiUsecase domain.LokasiParkirUsecase
-	transactor          helpers.Transactor
-	qrSecretKey         string
+	qrSessionRepo    domain.QRSessionRepository
+	lokasiParkirRepo domain.LokasiParkirRepository
+	transactor       helpers.Transactor
+	qrSecretKey      string
 }
 
-func NewQRSessionUsecase(qrSessionRepo domain.QRSessionRepository, parkirLokasi domain.LokasiParkirUsecase, transactor helpers.Transactor, qrSecretKey string) domain.QRSessionUsecase {
+func NewQRSessionUsecase(qrSessionRepo domain.QRSessionRepository, lokasiParkirRepo domain.LokasiParkirRepository, transactor helpers.Transactor, qrSecretKey string) domain.QRSessionUsecase {
 	return &qrSessionUsecase{
-		qrSessionRepo:       qrSessionRepo,
-		parkirLokasiUsecase: parkirLokasi,
-		transactor:          transactor,
-		qrSecretKey:         qrSecretKey,
+		qrSessionRepo:    qrSessionRepo,
+		lokasiParkirRepo: lokasiParkirRepo,
+		transactor:       transactor,
+		qrSecretKey:      qrSecretKey,
 	}
 }
 
@@ -49,7 +49,7 @@ func (usecase *qrSessionUsecase) CreateQRSession(ctx context.Context, petugasID 
 			}
 		}
 
-		lokasiParkir, err := usecase.parkirLokasiUsecase.GetLokasiParkirByPetugasID(txCtx, petugasID)
+		lokasiParkir, err := usecase.lokasiParkirRepo.GetLokasiParkirByPetugasID(txCtx, petugasID)
 		if err != nil {
 			logrus.WithError(err).Error("usecase.CreateQRSession: failed to get lokasi by petugas ID")
 			return err

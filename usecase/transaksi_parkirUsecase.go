@@ -20,24 +20,24 @@ import (
 
 type transaksiParkirUsecase struct {
 	transaksiParkirRepo domain.TransaksiParkirRepository
-	userUsecase         domain.UserUsecase
-	qrSessionUsecase    domain.QRSessionUsecase
-	lokasiParkirUsecase domain.LokasiParkirUsecase
+	userRepo            domain.UserRepository
+	qrSessionRepo       domain.QRSessionRepository
+	lokasiParkirRepo    domain.LokasiParkirRepository
 	transactor          helpers.Transactor
 }
 
-func NewTransaksiParkirUsecase(transaksiParkirRepo domain.TransaksiParkirRepository, userUsecase domain.UserUsecase, qrSessionUsecase domain.QRSessionUsecase, lokasiParkirUsecase domain.LokasiParkirUsecase, transactor helpers.Transactor) domain.TransaksiParkirUsecase {
+func NewTransaksiParkirUsecase(transaksiParkirRepo domain.TransaksiParkirRepository, userRepo domain.UserRepository, qrSessionRepo domain.QRSessionRepository, lokasiParkirRepo domain.LokasiParkirRepository, transactor helpers.Transactor) domain.TransaksiParkirUsecase {
 	return &transaksiParkirUsecase{
 		transaksiParkirRepo: transaksiParkirRepo,
-		userUsecase:         userUsecase,
-		qrSessionUsecase:    qrSessionUsecase,
-		lokasiParkirUsecase: lokasiParkirUsecase,
+		userRepo:            userRepo,
+		qrSessionRepo:       qrSessionRepo,
+		lokasiParkirRepo:    lokasiParkirRepo,
 		transactor:          transactor,
 	}
 }
 
 func (usecase *transaksiParkirUsecase) CreateTransaksiParkir(ctx context.Context, req *dto.TransaksiParkirRequestDTO, userID string) (*dto.TransaksiParkirResponseDTO, error) {
-	user, err := usecase.userUsecase.GetUserByID(ctx, userID)
+	user, err := usecase.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.CreateTransaksiParkir: failed to get user by ID")
 		return nil, err
@@ -92,7 +92,7 @@ func (usecase *transaksiParkirUsecase) CreateTransaksiParkir(ctx context.Context
 		return nil, errors.New("invalid QR payload signature")
 	}
 
-	qrSession, err := usecase.qrSessionUsecase.GetQRSessionByPayload(ctx, req.QRPayload)
+	qrSession, err := usecase.qrSessionRepo.GetQRSessionByPayload(ctx, req.QRPayload)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.CreateTransaksiParkir: failed to get QR session by payload")
 		return nil, err
@@ -112,21 +112,14 @@ func (usecase *transaksiParkirUsecase) CreateTransaksiParkir(ctx context.Context
 		return nil, errors.New("invalid jenis kendaraan")
 	}
 
-	petugas, err := usecase.userUsecase.GetUserByID(ctx, petugasID)
-	if err != nil {
-		logrus.WithError(err).Error("usecase.CreateTransaksiParkir: failed to get petugas by ID")
-		return nil, err
-	}
-
-	if petugas == nil || petugas.Role != "petugas" {
-		logrus.WithError(err).Error("usecase.CreateTransaksiParkir: invalid petugas ID in QR payload")
-		return nil, errors.New("invalid petugas ID in QR payload")
-	}
-
-	lokasi, err := usecase.lokasiParkirUsecase.GetLokasiParkirByID(ctx, lokasiID)
+	lokasi, err := usecase.lokasiParkirRepo.GetLokasiParkirByID(ctx, lokasiID)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.CreateTransaksiParkir: failed to get lokasi by ID")
 		return nil, err
+	}
+	if lokasi.Petugas == nil || lokasi.Petugas.Role != "petugas" {
+		logrus.WithError(err).Error("usecase.CreateTransaksiParkir: invalid petugas ID in QR payload")
+		return nil, errors.New("invalid petugas ID in QR payload")
 	}
 
 	if user.Saldo < tarif {
@@ -137,7 +130,7 @@ func (usecase *transaksiParkirUsecase) CreateTransaksiParkir(ctx context.Context
 	transaksiParkir := &domain.TransaksiParkir{
 		KodeTransaksi:  fmt.Sprintf("TRX-%d", time.Now().UnixNano()),
 		PenggunaID:     user.ID,
-		PetugasID:      petugas.ID,
+		PetugasID:      lokasi.Petugas.ID,
 		LokasiID:       lokasi.ID,
 		JenisKendaraan: req.JenisKendaraan,
 		Tarif:          tarif,
@@ -153,13 +146,13 @@ func (usecase *transaksiParkirUsecase) CreateTransaksiParkir(ctx context.Context
 			return err
 		}
 
-		err = usecase.userUsecase.DeductUserSaldo(txCtx, user.ID, tarif)
+		err = usecase.userRepo.DeductUserSaldo(txCtx, user.ID, tarif)
 		if err != nil {
 			logrus.WithError(err).Error("usecase.CreateTransaksiParkir: failed to update user saldo")
 			return err
 		}
 
-		err = usecase.qrSessionUsecase.RevokeQRSession(txCtx, qrSession.ID)
+		err = usecase.qrSessionRepo.RevokeQRSession(txCtx, qrSession.ID)
 		if err != nil {
 			logrus.WithError(err).Error("usecase.CreateTransaksiParkir: failed to revoke QR session")
 			return err

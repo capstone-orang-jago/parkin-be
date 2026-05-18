@@ -10,16 +10,17 @@ import (
 
 type (
 	User struct {
-		ID         string
-		Name       string
-		Telephone  string
-		Email      string
-		Password   string
-		Role       string
-		Saldo      int64
-		IsVerified bool
-		CreatedAt  time.Time
-		UpdatedAt  time.Time
+		ID           string
+		Name         string
+		Telephone    string
+		Email        string
+		Password     string
+		Role         string
+		Saldo        int64
+		IsVerified   bool
+		CreatedAt    time.Time
+		UpdatedAt    time.Time
+		LokasiParkir *LokasiParkir
 	}
 
 	UserRepository interface {
@@ -33,7 +34,7 @@ type (
 		GetUserSaldo(ctx context.Context, id string) (int64, error)
 		DeductUserSaldo(ctx context.Context, id string, amount int64) error
 		AddUserSaldo(ctx context.Context, id string, amount int64) error
-		GetUserProfile(ctx context.Context, id string) (*User, error)
+		GetUserProfile(ctx context.Context, id, role string) (*User, error)
 	}
 
 	UserUsecase interface {
@@ -45,7 +46,7 @@ type (
 		DeleteUser(ctx context.Context, id string) error
 		GetUserSaldo(ctx context.Context, id string) (int64, error)
 		DeductUserSaldo(ctx context.Context, id string, amount int64) error
-		GetUserProfile(ctx context.Context, id string) (res *dto.UserResponseDTO, err error)
+		GetUserProfile(ctx context.Context, id, role string) (res *dto.UserResponseDTO, err error)
 	}
 
 	UserHandler interface {

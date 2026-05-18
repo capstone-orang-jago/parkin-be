@@ -108,18 +108,50 @@ func (repo *userRepository) GetUserByTelephone(ctx context.Context, telephone st
 	return user, nil
 }
 
-func (repo *userRepository) GetUserProfile(ctx context.Context, id string) (user *domain.User, err error) {
-	query := `SELECT id, name, telephone, email, role, saldo, is_verified FROM users WHERE id = $1`
-
+func (repo *userRepository) GetUserProfile(ctx context.Context, id, role string) (user *domain.User, err error) {
 	user = &domain.User{}
+	if role == "petugas" {
+		query := `
+			SELECT u.id, u.name, u.telephone, u.email, u.role, u.saldo, u.is_verified,
+			l.id, l.nama_lokasi, l.alamat, l.is_active
+			FROM users u
+			LEFT JOIN lokasi_parkir l ON u.id = l.petugas_id
+			WHERE u.id = $1 AND u.role = 'petugas'`
 
-	err = repo.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Name, &user.Telephone, &user.Email, &user.Role, &user.Saldo, &user.IsVerified)
-	if err == sql.ErrNoRows {
-		logrus.WithError(err).Info("repo.GetUserProfile: no user found for ID")
-		return nil, nil
-	} else if err != nil {
-		logrus.WithError(err).Error("repo.GetUserProfile: failed to get user profile")
-		return nil, err
+		var locID, locNama, locAlamat sql.NullString
+		var locActive sql.NullBool
+
+		err = repo.db.QueryRowContext(ctx, query, id).Scan(
+			&user.ID, &user.Name, &user.Telephone, &user.Email, &user.Role, &user.Saldo, &user.IsVerified,
+			&locID, &locNama, &locAlamat, &locActive,
+		)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, nil
+			}
+			return nil, err
+		}
+
+		if locID.Valid {
+			user.LokasiParkir = &domain.LokasiParkir{
+				ID:         locID.String,
+				NamaLokasi: locNama.String,
+				Alamat:     locAlamat.String,
+				IsActive:   locActive.Bool,
+			}
+		}
+
+	} else {
+		query := `SELECT id, name, telephone, email, role, saldo, is_verified FROM users WHERE id = $1 AND role = 'pengguna'`
+		err = repo.db.QueryRowContext(ctx, query, id).Scan(
+			&user.ID, &user.Name, &user.Telephone, &user.Email, &user.Role, &user.Saldo, &user.IsVerified,
+		)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, nil
+			}
+			return nil, err
+		}
 	}
 	return user, nil
 }

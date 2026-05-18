@@ -12,5 +12,5 @@ type LokasiParkirResponseDTO struct {
 	NamaLokasi string           `json:"nama_lokasi"`
 	Alamat     string           `json:"alamat"`
 	IsActive   bool             `json:"is_active"`
-	Petugas    *UserResponseDTO `json:"petugas"`
+	Petugas    *UserResponseDTO `json:"petugas,omitempty"`
 }

@@ -97,8 +97,8 @@ func (usecase *userUsecase) GetUserByEmail(ctx context.Context, email string) (r
 	return response, nil
 }
 
-func (usecase *userUsecase) GetUserProfile(ctx context.Context, id string) (res *dto.UserResponseDTO, err error) {
-	user, err := usecase.userRepo.GetUserProfile(ctx, id)
+func (usecase *userUsecase) GetUserProfile(ctx context.Context, id, role string) (res *dto.UserResponseDTO, err error) {
+	user, err := usecase.userRepo.GetUserProfile(ctx, id, role)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetUserProfile: failed to get user profile")
 		return nil, err
@@ -115,6 +115,15 @@ func (usecase *userUsecase) GetUserProfile(ctx context.Context, id string) (res 
 		Role:       user.Role,
 		Saldo:      user.Saldo,
 		IsVerified: user.IsVerified,
+	}
+
+	if role == "petugas" && user.LokasiParkir != nil {
+		response.Lokasi = &dto.LokasiParkirResponseDTO{
+			ID:         user.LokasiParkir.ID,
+			NamaLokasi: user.LokasiParkir.NamaLokasi,
+			Alamat:     user.LokasiParkir.Alamat,
+			IsActive:   user.LokasiParkir.IsActive,
+		}
 	}
 
 	return response, nil

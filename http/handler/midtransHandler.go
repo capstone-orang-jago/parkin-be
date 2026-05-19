@@ -22,7 +22,7 @@ func NewMidtransHandler(midtransUsecase domain.MidtransUsecase) domain.MidtransH
 // CreateTopUp godoc
 // @Summary Initiate a new top-up transaction
 // @Description Initiate a new top-up transaction with Midtrans and get the payment URL
-// @Tags Midtrans
+// @Tags user
 // @Accept json
 // @Produce json
 // @Param request body dto.TopUpRequestDTO true "Top-Up Request"
@@ -62,7 +62,7 @@ func (handler *midtransHandler) CreateTopUp(c *gin.Context) {
 // MidtransCallback godoc
 // @Summary Handle Midtrans payment callback
 // @Description Handle the payment callback from Midtrans and update top-up status accordingly
-// @Tags Midtrans
+// @Tags midtrans
 // @Accept json
 // @Produce json
 // @Param request body dto.MidtransCallbackDTO true "Midtrans Callback Request"
@@ -98,7 +98,7 @@ func (handler *midtransHandler) MidtransCallback(c *gin.Context) {
 // GetTopUpStatus godoc
 // @Summary Get the status of a top-up transaction
 // @Description Get the status of a top-up transaction by its order ID
-// @Tags Midtrans
+// @Tags user
 // @Accept json
 // @Produce json
 // @Param order_id path string true "Order ID"

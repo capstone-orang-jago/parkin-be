@@ -20,7 +20,7 @@ func NewQRSessionHandler(qrSessionUsecase domain.QRSessionUsecase) domain.QRSess
 
 // CreateQRSession godoc
 // @Summary Create a new QR session for petugas
-// @Tags Officer
+// @Tags officer
 // @Description Create a new QR session for petugas to generate QR code for parking transactions
 // @Security BearerAuth
 // @Accept json

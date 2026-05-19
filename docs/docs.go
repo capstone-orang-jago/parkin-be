@@ -30,7 +30,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin"
+                    "admin"
                 ],
                 "summary": "Get Admin Dashboard Analytics",
                 "responses": {
@@ -70,7 +70,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin Locations"
+                    "admin"
                 ],
                 "summary": "Get All Parking Locations",
                 "responses": {
@@ -113,7 +113,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin Locations"
+                    "admin"
                 ],
                 "summary": "Get Location Detail \u0026 Stats",
                 "parameters": [
@@ -158,7 +158,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin"
+                    "admin"
                 ],
                 "summary": "Get all lokasi parkir",
                 "responses": {
@@ -192,7 +192,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin"
+                    "admin"
                 ],
                 "summary": "Create a new lokasi parkir",
                 "parameters": [
@@ -239,7 +239,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin"
+                    "admin"
                 ],
                 "summary": "Get lokasi parkir by Petugas ID",
                 "parameters": [
@@ -284,7 +284,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin"
+                    "admin"
                 ],
                 "summary": "Get lokasi parkir by ID",
                 "parameters": [
@@ -330,7 +330,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin"
+                    "admin"
                 ],
                 "summary": "Update lokasi parkir",
                 "parameters": [
@@ -382,7 +382,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin"
+                    "admin"
                 ],
                 "summary": "Delete lokasi parkir",
                 "parameters": [
@@ -431,7 +431,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin Officers"
+                    "admin"
                 ],
                 "summary": "Get All Field Officers",
                 "responses": {
@@ -474,7 +474,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin Officers"
+                    "admin"
                 ],
                 "summary": "Get Officer Performance Detail",
                 "parameters": [
@@ -523,7 +523,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin Reports"
+                    "admin"
                 ],
                 "summary": "Get Aggregate Revenue Report",
                 "parameters": [
@@ -589,7 +589,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin Transactions"
+                    "admin"
                 ],
                 "summary": "Global Transaction Monitoring",
                 "parameters": [
@@ -679,7 +679,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin Transactions"
+                    "admin"
                 ],
                 "summary": "Get Transaction Filter Options",
                 "responses": {
@@ -713,7 +713,7 @@ const docTemplate = `{
                 ],
                 "description": "Get precise logs data with strict masked user security patterns",
                 "tags": [
-                    "Admin Transactions"
+                    "admin"
                 ],
                 "summary": "Transaction Audit Audit (Masked ID)",
                 "parameters": [
@@ -726,6 +726,233 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
+            }
+        },
+        "/admin/user": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Get all users",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.UserResponseDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Create a new user",
+                "parameters": [
+                    {
+                        "description": "User Request",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/user/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Get user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Update user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "User Request",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Delete user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    }
+                }
             }
         },
         "/auth/login": {
@@ -1063,7 +1290,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Midtrans"
+                    "midtrans"
                 ],
                 "summary": "Handle Midtrans payment callback",
                 "parameters": [
@@ -1114,7 +1341,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Officer"
+                    "officer"
                 ],
                 "summary": "Get officer dashboard data",
                 "responses": {
@@ -1178,7 +1405,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Officer"
+                    "officer"
                 ],
                 "summary": "Create a new QR session for petugas",
                 "responses": {
@@ -1218,7 +1445,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Transaksi Parkir"
+                    "transaksi Parkir"
                 ],
                 "summary": "Get all parking transactions for a user",
                 "parameters": [
@@ -1269,7 +1496,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Midtrans"
+                    "user"
                 ],
                 "summary": "Initiate a new top-up transaction",
                 "parameters": [
@@ -1320,7 +1547,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Midtrans"
+                    "user"
                 ],
                 "summary": "Get the status of a top-up transaction",
                 "parameters": [
@@ -1354,7 +1581,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/transaksi-parkir": {
+        "/user/parking/pay": {
             "post": {
                 "security": [
                     {
@@ -1369,7 +1596,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Transaksi Parkir"
+                    "user"
                 ],
                 "summary": "Create a new parking transaction",
                 "parameters": [
@@ -1388,130 +1615,6 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/dto.TransaksiParkirResponseDTO"
-                        }
-                    }
-                }
-            }
-        },
-        "/transaksi-parkir/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieve a parking transaction by its ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Transaksi Parkir"
-                ],
-                "summary": "Get parking transaction by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Transaksi Parkir ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.TransaksiParkirResponseDTO"
-                        }
-                    }
-                }
-            }
-        },
-        "/user": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Get all users",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.UserResponseDTO"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/domain.HttpResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/domain.HttpResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Create a new user",
-                "parameters": [
-                    {
-                        "description": "User Request",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.UserRequestDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.UserResponseDTO"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/domain.HttpResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/domain.HttpResponse"
                         }
                     }
                 }
@@ -1568,7 +1671,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Transaksi Parkir"
+                    "transaksi Parkir"
                 ],
                 "summary": "Get all parking transactions for a user",
                 "parameters": [
@@ -1604,56 +1707,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/{id}": {
+        "/user/transactions/{id}": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Get user by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.UserResponseDTO"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/domain.HttpResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/domain.HttpResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
+                "description": "Retrieve a parking transaction by its ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -1661,62 +1722,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "transaksi Parkir"
                 ],
-                "summary": "Update user",
+                "summary": "Get parking transaction by ID",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "User Request",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.UserRequestDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.UserResponseDTO"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/domain.HttpResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/domain.HttpResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Delete user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID",
+                        "description": "Transaksi Parkir ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1726,19 +1738,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.HttpResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/domain.HttpResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/domain.HttpResponse"
+                            "$ref": "#/definitions/dto.TransaksiParkirResponseDTO"
                         }
                     }
                 }

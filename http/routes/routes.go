@@ -88,13 +88,16 @@ func RegisterRoutes(application app.App) http.Handler {
 	admin := v1.Group("/admin")
 	admin.Use(middlewares.AuthMiddleware()).Use(middlewares.RoleMiddleware(domain.RoleAdmin, domain.RoleDishub))
 	{
-		admin.GET("/", application.UserHandler.GetAllUsers)
-		admin.GET("/:id", application.UserHandler.GetUserByID)
-		admin.POST("/", application.UserHandler.CreateUser)
-		admin.PUT("/:id", application.UserHandler.UpdateUser)
-		admin.DELETE("/:id", application.UserHandler.DeleteUser)
-
 		admin.GET("/dashboard", application.DashboardHandler.GetAdminDashboard)
+		admin.GET("/reports", application.AdminHandler.GetRevenueReport)
+		user := admin.Group("/user")
+		{
+			user.GET("/", application.UserHandler.GetAllUsers)
+			user.GET("/:id", application.UserHandler.GetUserByID)
+			user.POST("/", application.UserHandler.CreateUser)
+			user.PUT("/:id", application.UserHandler.UpdateUser)
+			user.DELETE("/:id", application.UserHandler.DeleteUser)
+		}
 
 		transactions := admin.Group("/transactions")
 		{
@@ -114,8 +117,6 @@ func RegisterRoutes(application app.App) http.Handler {
 			officers.GET("/", application.AdminHandler.GetAllOfficers)
 			officers.GET("/:id", application.AdminHandler.GetOfficerDetail)
 		}
-
-		admin.GET("/reports", application.AdminHandler.GetRevenueReport)
 
 		lokasiParkir := admin.Group("/lokasi-parkir")
 		{

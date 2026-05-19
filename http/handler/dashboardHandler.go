@@ -18,7 +18,7 @@ func NewDashboardHandler(dashboardUsecase domain.DashboardUsecase) domain.Dashbo
 // GetOfficerDashboard godoc
 // @Summary Get officer dashboard data
 // @Description Retrieve dashboard data for the authenticated parking officer, including profile info and recent transactions
-// @Tags Officer
+// @Tags officer
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -47,7 +47,7 @@ func (handler *dashboardHandler) GetOfficerDashboard(c *gin.Context) {
 // GetAdminDashboard godoc
 // @Summary      Get Admin Dashboard Analytics
 // @Description  Retrieve global analytics, trend metrics, recent streams, and spot performance using fast Go-runtime mapping
-// @Tags         Admin
+// @Tags         admin
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth

@@ -22,13 +22,13 @@ func NewUserHandler(userUsecase domain.UserUsecase) domain.UserHandler {
 
 // GetAllUsers godoc
 // @Summary Get all users
-// @Tags users
+// @Tags admin
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {array} dto.UserResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /user [get]
+// @Router /admin/user [get]
 func (handler *userHandler) GetAllUsers(c *gin.Context) {
 	users, err := handler.userUsecase.GetAllUsers(c.Request.Context())
 	if err != nil {
@@ -49,14 +49,14 @@ func (handler *userHandler) GetAllUsers(c *gin.Context) {
 
 // GetUserByID godoc
 // @Summary Get user by ID
-// @Tags users
+// @Tags admin
 // @Security BearerAuth
 // @Produce json
 // @Param id path string true "User ID"
 // @Success 200 {object} dto.UserResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /user/{id} [get]
+// @Router /admin/user/{id} [get]
 func (handler *userHandler) GetUserByID(c *gin.Context) {
 	id := c.Param("id")
 	user, err := handler.userUsecase.GetUserByID(c.Request.Context(), id)
@@ -109,7 +109,7 @@ func (handler *userHandler) GetUserProfile(c *gin.Context) {
 
 // CreateUser godoc
 // @Summary Create a new user
-// @Tags users
+// @Tags admin
 // @Accept json
 // @Produce json
 // @Param user body dto.UserRequestDTO true "User Request"
@@ -117,7 +117,7 @@ func (handler *userHandler) GetUserProfile(c *gin.Context) {
 // @Success 201 {object} dto.UserResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /user [post]
+// @Router /admin/user [post]
 func (handler *userHandler) CreateUser(c *gin.Context) {
 	var req dto.UserRequestDTO
 	if err := helpers.DecodeJSON(c, &req); err != nil {
@@ -148,7 +148,7 @@ func (handler *userHandler) CreateUser(c *gin.Context) {
 
 // UpdateUser godoc
 // @Summary Update user
-// @Tags users
+// @Tags admin
 // @Accept json
 // @Produce json
 // @Param id path string true "User ID"
@@ -157,7 +157,7 @@ func (handler *userHandler) CreateUser(c *gin.Context) {
 // @Success 200 {object} dto.UserResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /user/{id} [put]
+// @Router /admin/user/{id} [put]
 func (handler *userHandler) UpdateUser(c *gin.Context) {
 	id := c.Param("id")
 
@@ -190,13 +190,13 @@ func (handler *userHandler) UpdateUser(c *gin.Context) {
 
 // DeleteUser godoc
 // @Summary Delete user
-// @Tags users
+// @Tags admin
 // @Param id path string true "User ID"
 // @Security BearerAuth
 // @Success 200 {object} domain.HttpResponse
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /user/{id} [delete]
+// @Router /admin/user/{id} [delete]
 func (handler *userHandler) DeleteUser(c *gin.Context) {
 	id := c.Param("id")
 

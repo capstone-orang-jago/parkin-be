@@ -22,7 +22,7 @@ func NewLokasiParkirHandler(lokasiParkirUsecase domain.LokasiParkirUsecase) doma
 
 // CreateLokasiParkir godoc
 // @Summary Create a new lokasi parkir
-// @Tags Admin
+// @Tags admin
 // @Security BearerAuth
 // @Accept json
 // @Produce json
@@ -61,7 +61,7 @@ func (handler *lokasiParkirHandler) CreateLokasiParkir(c *gin.Context) {
 
 // GetAllLokasiParkir godoc
 // @Summary Get all lokasi parkir
-// @Tags Admin
+// @Tags admin
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {array} dto.LokasiParkirResponseDTO
@@ -87,7 +87,7 @@ func (handler *lokasiParkirHandler) GetAllLokasiParkir(c *gin.Context) {
 
 // GetLokasiParkirByID godoc
 // @Summary Get lokasi parkir by ID
-// @Tags Admin
+// @Tags admin
 // @Security BearerAuth
 // @Produce json
 // @Param id path string true "Lokasi Parkir ID"
@@ -116,7 +116,7 @@ func (handler *lokasiParkirHandler) GetLokasiParkirByID(c *gin.Context) {
 
 // GetLokasiParkirByPetugasID godoc
 // @Summary Get lokasi parkir by Petugas ID
-// @Tags Admin
+// @Tags admin
 // @Security BearerAuth
 // @Produce json
 // @Param petugas_id path string true "Petugas ID"
@@ -145,7 +145,7 @@ func (handler *lokasiParkirHandler) GetLokasiParkirByPetugasID(c *gin.Context) {
 
 // UpdateLokasiParkir godoc
 // @Summary Update lokasi parkir
-// @Tags Admin
+// @Tags admin
 // @Security BearerAuth
 // @Accept json
 // @Produce json
@@ -187,7 +187,7 @@ func (handler *lokasiParkirHandler) UpdateLokasiParkir(c *gin.Context) {
 
 // DeleteLokasiParkir godoc
 // @Summary Delete lokasi parkir
-// @Tags Admin
+// @Tags admin
 // @Security BearerAuth
 // @Produce json
 // @Param id path string true "Lokasi Parkir ID"

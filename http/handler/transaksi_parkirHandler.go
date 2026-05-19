@@ -19,13 +19,13 @@ func NewTransaksiParkirHandler(transaksiParkirUsecase domain.TransaksiParkirUsec
 // CreateTransaksiParkir godoc
 // @Summary Create a new parking transaction
 // @Description Create a new parking transaction based on the provided QR payload and vehicle type
-// @Tags Transaksi Parkir
+// @Tags user
 // @Accept json
 // @Produce json
 // @Param request body dto.TransaksiParkirRequestDTO true "Transaksi Parkir Request"
 // @Security BearerAuth
 // @Success 201 {object} dto.TransaksiParkirResponseDTO
-// @Router /transaksi-parkir [post]
+// @Router /user/parking/pay [post]
 func (handler *transaksiParkirHandler) CreateTransaksiParkir(c *gin.Context) {
 	userID := c.GetString("sub")
 
@@ -60,13 +60,13 @@ func (handler *transaksiParkirHandler) CreateTransaksiParkir(c *gin.Context) {
 // GetTransaksiParkirByID godoc
 // @Summary Get parking transaction by ID
 // @Description Retrieve a parking transaction by its ID
-// @Tags Transaksi Parkir
+// @Tags transaksi Parkir
 // @Accept json
 // @Produce json
 // @Param id path string true "Transaksi Parkir ID"
 // @Security BearerAuth
 // @Success 200 {object} dto.TransaksiParkirResponseDTO
-// @Router /transaksi-parkir/{id} [get]
+// @Router /user/transactions/{id} [get]
 func (handler *transaksiParkirHandler) GetTransaksiParkirByID(c *gin.Context) {
 	id := c.Param("id")
 
@@ -90,7 +90,7 @@ func (handler *transaksiParkirHandler) GetTransaksiParkirByID(c *gin.Context) {
 // GetAllTransaksiParkirByUserID godoc
 // @Summary Get all parking transactions for a user
 // @Description Retrieve all parking transactions for the authenticated user, with optional pagination and filtering
-// @Tags Transaksi Parkir
+// @Tags transaksi Parkir
 // @Accept json
 // @Produce json
 // @Param page query int false "Page number for pagination"

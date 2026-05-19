@@ -18,7 +18,7 @@ func NewAdminHandler(adminUsecase domain.AdminUsecase) domain.AdminHandler {
 // GetAllTransactions godoc
 // @Summary      Global Transaction Monitoring
 // @Description  Retrieve global parking logs with rich analytical multi-filters for admin monitoring
-// @Tags         Admin Transactions
+// @Tags         admin
 // @Accept       json
 // @Produce      json
 // @Param        date_from    query     string  false  "Format: YYYY-MM-DD"
@@ -61,7 +61,7 @@ func (h *adminHandler) GetAllTransactions(c *gin.Context) {
 // GetTransactionDetail godoc
 // @Summary      Transaction Audit Audit (Masked ID)
 // @Description  Get precise logs data with strict masked user security patterns
-// @Tags         Admin Transactions
+// @Tags         admin
 // @Param        id   path      string  true  "Transaction UUID"
 // @Security     BearerAuth
 // @Router       /admin/transactions/{id} [get]
@@ -78,7 +78,7 @@ func (h *adminHandler) GetTransactionDetail(c *gin.Context) {
 // GetFilterOptions godoc
 // @Summary      Get Transaction Filter Options
 // @Description  Retrieve dynamic dropdown options for admin transaction monitoring filter (locations, officers, vehicles, statuses)
-// @Tags         Admin Transactions
+// @Tags         admin
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
@@ -97,7 +97,7 @@ func (h *adminHandler) GetFilterOptions(c *gin.Context) {
 // GetAllLocations godoc
 // @Summary      Get All Parking Locations
 // @Description  Retrieve a list of all parking spots/locations with their assigned officers
-// @Tags         Admin Locations
+// @Tags         admin
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
@@ -116,7 +116,7 @@ func (h *adminHandler) GetAllLocations(c *gin.Context) {
 // GetLocationDetail godoc
 // @Summary      Get Location Detail & Stats
 // @Description  Retrieve detailed statistics and recent transaction history for a specific parking spot
-// @Tags         Admin Locations
+// @Tags         admin
 // @Accept       json
 // @Produce      json
 // @Param        id   path      string  true  "Location UUID"
@@ -137,7 +137,7 @@ func (h *adminHandler) GetLocationDetail(c *gin.Context) {
 // GetAllOfficers godoc
 // @Summary      Get All Field Officers
 // @Description  Retrieve a list of all parking officers/dishub personnel
-// @Tags         Admin Officers
+// @Tags         admin
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
@@ -156,7 +156,7 @@ func (h *adminHandler) GetAllOfficers(c *gin.Context) {
 // GetOfficerDetail godoc
 // @Summary      Get Officer Performance Detail
 // @Description  Retrieve specific officer's duty performance and recent handled transactions
-// @Tags         Admin Officers
+// @Tags         admin
 // @Accept       json
 // @Produce      json
 // @Param        id   path      string  true  "Officer UUID"
@@ -177,7 +177,7 @@ func (h *adminHandler) GetOfficerDetail(c *gin.Context) {
 // GetRevenueReport godoc
 // @Summary      Get Aggregate Revenue Report
 // @Description  Retrieve high-level financial reports with optional filters for business insights
-// @Tags         Admin Reports
+// @Tags         admin
 // @Accept       json
 // @Produce      json
 // @Param        date_from    query     string  false  "Format: YYYY-MM-DD"

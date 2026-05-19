@@ -40,6 +40,63 @@ definitions:
           $ref: '#/definitions/dto.AdminTrendDTO'
         type: array
     type: object
+  dto.AdminFilterOptionsResponseDTO:
+    properties:
+      locations:
+        items:
+          $ref: '#/definitions/dto.FilterOptionItem'
+        type: array
+      officers:
+        items:
+          $ref: '#/definitions/dto.FilterOptionItem'
+        type: array
+      statuses:
+        items:
+          type: string
+        type: array
+      vehicles:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.AdminLocationDetailDTO:
+    properties:
+      alamat:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      nama_lokasi:
+        type: string
+      recent_history:
+        items:
+          $ref: '#/definitions/dto.TransaksiParkirResponseDTO'
+        type: array
+      total_pendapatan:
+        type: integer
+      total_transaksi:
+        type: integer
+    type: object
+  dto.AdminOfficerDetailDTO:
+    properties:
+      email:
+        type: string
+      history_handled:
+        items:
+          $ref: '#/definitions/dto.TransaksiParkirResponseDTO'
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      telephone:
+        type: string
+      total_duty_days:
+        type: integer
+      total_tx_handled:
+        type: integer
+    type: object
   dto.AdminRecentTransactionDTO:
     properties:
       amount_rp:
@@ -54,6 +111,19 @@ definitions:
         type: string
       vehicle_type:
         type: string
+    type: object
+  dto.AdminReportResponseDTO:
+    properties:
+      average_per_tx:
+        type: number
+      breakdown_by_spot:
+        items:
+          $ref: '#/definitions/dto.ReportLocationBreakdown'
+        type: array
+      total_revenue:
+        type: integer
+      total_tx_global:
+        type: integer
     type: object
   dto.AdminSummaryDTO:
     properties:
@@ -82,6 +152,13 @@ definitions:
         type: integer
       transaction_count:
         type: integer
+    type: object
+  dto.FilterOptionItem:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
     type: object
   dto.LocationPerformanceDTO:
     properties:
@@ -193,6 +270,19 @@ definitions:
       telephone:
         type: string
     type: object
+  dto.PaginatedTransactionResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.TransaksiParkirResponseDTO'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+    type: object
   dto.QRSessionResponseDTO:
     properties:
       expired_at:
@@ -232,6 +322,15 @@ definitions:
         type: string
       user_id:
         type: string
+    type: object
+  dto.ReportLocationBreakdown:
+    properties:
+      location_name:
+        type: string
+      revenue:
+        type: integer
+      total_tx:
+        type: integer
     type: object
   dto.TopUpRequestDTO:
     properties:
@@ -334,11 +433,6 @@ definitions:
       telephone:
         type: string
     type: object
-  dto.UserSaldoRequestDTO:
-    properties:
-      nominal:
-        type: integer
-    type: object
   dto.VerifyOtpCodeRequestDTO:
     properties:
       otp_code:
@@ -376,6 +470,415 @@ paths:
       summary: Get Admin Dashboard Analytics
       tags:
       - Admin
+  /admin/locations:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all parking spots/locations with their assigned
+        officers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/domain.HttpResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.LokasiParkirResponseDTO'
+                  type: array
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Parking Locations
+      tags:
+      - Admin Locations
+  /admin/locations/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve detailed statistics and recent transaction history for
+        a specific parking spot
+      parameters:
+      - description: Location UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/domain.HttpResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AdminLocationDetailDTO'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get Location Detail & Stats
+      tags:
+      - Admin Locations
+  /admin/lokasi-parkir:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.LokasiParkirResponseDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all lokasi parkir
+      tags:
+      - Admin
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Lokasi Parkir Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LokasiParkirRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.LokasiParkirResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new lokasi parkir
+      tags:
+      - Admin
+  /admin/lokasi-parkir/{id}:
+    delete:
+      parameters:
+      - description: Lokasi Parkir ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete lokasi parkir
+      tags:
+      - Admin
+    get:
+      parameters:
+      - description: Lokasi Parkir ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LokasiParkirResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Get lokasi parkir by ID
+      tags:
+      - Admin
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Lokasi Parkir ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Lokasi Parkir Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LokasiParkirRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LokasiParkirResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Update lokasi parkir
+      tags:
+      - Admin
+  /admin/lokasi-parkir/petugas/{petugas_id}:
+    get:
+      parameters:
+      - description: Petugas ID
+        in: path
+        name: petugas_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LokasiParkirResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Get lokasi parkir by Petugas ID
+      tags:
+      - Admin
+  /admin/officers:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all parking officers/dishub personnel
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/domain.HttpResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.UserResponseDTO'
+                  type: array
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Field Officers
+      tags:
+      - Admin Officers
+  /admin/officers/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve specific officer's duty performance and recent handled
+        transactions
+      parameters:
+      - description: Officer UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/domain.HttpResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AdminOfficerDetailDTO'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get Officer Performance Detail
+      tags:
+      - Admin Officers
+  /admin/reports:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve high-level financial reports with optional filters for
+        business insights
+      parameters:
+      - description: 'Format: YYYY-MM-DD'
+        in: query
+        name: date_from
+        type: string
+      - description: 'Format: YYYY-MM-DD'
+        in: query
+        name: date_to
+        type: string
+      - description: Filter by specific spot
+        in: query
+        name: location_id
+        type: string
+      - description: motor / mobil
+        in: query
+        name: vehicle
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/domain.HttpResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AdminReportResponseDTO'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get Aggregate Revenue Report
+      tags:
+      - Admin Reports
+  /admin/transactions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve global parking logs with rich analytical multi-filters
+        for admin monitoring
+      parameters:
+      - description: 'Format: YYYY-MM-DD'
+        in: query
+        name: date_from
+        type: string
+      - description: 'Format: YYYY-MM-DD'
+        in: query
+        name: date_to
+        type: string
+      - description: Filter by Spot UUID
+        in: query
+        name: location_id
+        type: string
+      - description: Filter by Officer UUID
+        in: query
+        name: officer_id
+        type: string
+      - description: motor / mobil
+        in: query
+        name: vehicle
+        type: string
+      - description: sukses / gagal
+        in: query
+        name: status
+        type: string
+      - description: Page indicator
+        in: query
+        name: page
+        type: integer
+      - description: Row window scale
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/domain.HttpResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PaginatedTransactionResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Global Transaction Monitoring
+      tags:
+      - Admin Transactions
+  /admin/transactions/{id}:
+    get:
+      description: Get precise logs data with strict masked user security patterns
+      parameters:
+      - description: Transaction UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Transaction Audit Audit (Masked ID)
+      tags:
+      - Admin Transactions
+  /admin/transactions/filter-options:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve dynamic dropdown options for admin transaction monitoring
+        filter (locations, officers, vehicles, statuses)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/domain.HttpResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AdminFilterOptionsResponseDTO'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get Transaction Filter Options
+      tags:
+      - Admin Transactions
   /auth/login:
     post:
       consumes:
@@ -585,174 +1088,6 @@ paths:
       summary: Check server status
       tags:
       - health
-  /lokasi-parkir:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/dto.LokasiParkirResponseDTO'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-      security:
-      - BearerAuth: []
-      summary: Get all lokasi parkir
-      tags:
-      - lokasi-parkir
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Create Lokasi Parkir Request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.LokasiParkirRequestDTO'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.LokasiParkirResponseDTO'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-      security:
-      - BearerAuth: []
-      summary: Create a new lokasi parkir
-      tags:
-      - lokasi-parkir
-  /lokasi-parkir/{id}:
-    delete:
-      parameters:
-      - description: Lokasi Parkir ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-      security:
-      - BearerAuth: []
-      summary: Delete lokasi parkir
-      tags:
-      - lokasi-parkir
-    get:
-      parameters:
-      - description: Lokasi Parkir ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.LokasiParkirResponseDTO'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-      security:
-      - BearerAuth: []
-      summary: Get lokasi parkir by ID
-      tags:
-      - lokasi-parkir
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: Lokasi Parkir ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Update Lokasi Parkir Request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.LokasiParkirRequestDTO'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.LokasiParkirResponseDTO'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-      security:
-      - BearerAuth: []
-      summary: Update lokasi parkir
-      tags:
-      - lokasi-parkir
-  /lokasi-parkir/petugas/{petugas_id}:
-    get:
-      parameters:
-      - description: Petugas ID
-        in: path
-        name: petugas_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.LokasiParkirResponseDTO'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-      security:
-      - BearerAuth: []
-      summary: Get lokasi parkir by Petugas ID
-      tags:
-      - lokasi-parkir
   /midtrans/callback:
     post:
       consumes:
@@ -1135,64 +1470,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Update user
-      tags:
-      - users
-  /user/me/saldo:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/domain.HttpResponse'
-            - properties:
-                data:
-                  format: int64
-                  type: integer
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-      security:
-      - BearerAuth: []
-      summary: Get user saldo
-      tags:
-      - users
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: User Saldo Request
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/dto.UserSaldoRequestDTO'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-      security:
-      - BearerAuth: []
-      summary: Deduct user saldo
       tags:
       - users
   /user/profile:

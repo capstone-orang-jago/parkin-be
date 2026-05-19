@@ -1360,70 +1360,6 @@ paths:
       summary: Get all parking transactions for a user
       tags:
       - transaksi Parkir
-  /topup/{order_id}/status:
-    get:
-      consumes:
-      - application/json
-      description: Get the status of a top-up transaction by its order ID
-      parameters:
-      - description: Order ID
-        in: path
-        name: order_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-      security:
-      - BearerAuth: []
-      summary: Get the status of a top-up transaction
-      tags:
-      - user
-  /topup/create:
-    post:
-      consumes:
-      - application/json
-      description: Initiate a new top-up transaction with Midtrans and get the payment
-        URL
-      parameters:
-      - description: Top-Up Request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.TopUpRequestDTO'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.TopUpResponseDTO'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/domain.HttpResponse'
-      security:
-      - BearerAuth: []
-      summary: Initiate a new top-up transaction
-      tags:
-      - user
   /user/parking/pay:
     post:
       consumes:
@@ -1471,6 +1407,70 @@ paths:
       summary: Get user profile
       tags:
       - profile
+  /user/topup/{order_id}/status:
+    get:
+      consumes:
+      - application/json
+      description: Get the status of a top-up transaction by its order ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Get the status of a top-up transaction
+      tags:
+      - user
+  /user/topup/create:
+    post:
+      consumes:
+      - application/json
+      description: Initiate a new top-up transaction with Midtrans and get the payment
+        URL
+      parameters:
+      - description: Top-Up Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TopUpRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TopUpResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Initiate a new top-up transaction
+      tags:
+      - user
   /user/transactions:
     get:
       consumes:

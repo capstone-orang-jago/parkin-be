@@ -30,7 +30,7 @@ func NewMidtransHandler(midtransUsecase domain.MidtransUsecase) domain.MidtransH
 // @Success 200 {object} dto.TopUpResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /topup/create [post]
+// @Router /user/topup/create [post]
 func (handler *midtransHandler) CreateTopUp(c *gin.Context) {
 	userID := c.GetString("sub")
 
@@ -106,7 +106,7 @@ func (handler *midtransHandler) MidtransCallback(c *gin.Context) {
 // @Success 200 {object} domain.HttpResponse
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /topup/{order_id}/status [get]
+// @Router /user/topup/{order_id}/status [get]
 func (handler *midtransHandler) GetTopUpStatus(c *gin.Context) {
 	orderID := c.Param("order_id")
 	if orderID == "" {

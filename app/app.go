@@ -34,6 +34,9 @@ type App struct {
 	DashboardHandler          domain.DashboardHandler
 	DashboardUsecase          domain.DashboardUsecase
 	DashboardRepository       domain.DashboardRepository
+	AdminHandler              domain.AdminHandler
+	AdminUsecase              domain.AdminUsecase
+	AdminRepository           domain.AdminRepository
 }
 
 func InitApp(cfg *config.Config, waService domain.WaService) App {
@@ -69,6 +72,10 @@ func InitApp(cfg *config.Config, waService domain.WaService) App {
 	dashBoardRepo := repository.NewDashboardRepository(db)
 	dashboardUsecase := usecase.NewDashboardUsecase(dashBoardRepo, transaksiParkirRepo, userRepo)
 	dashboardHandler := handler.NewDashboardHandler(dashboardUsecase)
+
+	adminRepo := repository.NewAdminRepository(db)
+	adminUsecase := usecase.NewAdminUsecase(adminRepo)
+	adminHandler := handler.NewAdminHandler(adminUsecase)
 	return App{
 		UserHandler:               userHandler,
 		UserUsecase:               userUsecase,
@@ -94,5 +101,8 @@ func InitApp(cfg *config.Config, waService domain.WaService) App {
 		DashboardHandler:          dashboardHandler,
 		DashboardUsecase:          dashboardUsecase,
 		DashboardRepository:       dashBoardRepo,
+		AdminHandler:              adminHandler,
+		AdminUsecase:              adminUsecase,
+		AdminRepository:           adminRepo,
 	}
 }

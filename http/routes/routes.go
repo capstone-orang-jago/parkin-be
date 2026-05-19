@@ -93,28 +93,45 @@ func RegisterRoutes(application app.App) http.Handler {
 		admin.POST("/", application.UserHandler.CreateUser)
 		admin.PUT("/:id", application.UserHandler.UpdateUser)
 		admin.DELETE("/:id", application.UserHandler.DeleteUser)
-		admin.GET("/me/saldo", application.UserHandler.GetUserSaldo)
-		admin.PUT("/me/saldo", application.UserHandler.DeductUserSaldo)
 
 		admin.GET("/dashboard", application.DashboardHandler.GetAdminDashboard)
-		// admin.GET("/transactions", application.DashboardHandler.GetAdminDashboard)
+
+		transactions := admin.Group("/transactions")
+		{
+			transactions.GET("/", application.AdminHandler.GetAllTransactions)
+			transactions.GET("/:id", application.AdminHandler.GetTransactionDetail)
+			transactions.GET("/filter-options", application.AdminHandler.GetFilterOptions)
+		}
+
+		locations := admin.Group("/locations")
+		{
+			locations.GET("/", application.AdminHandler.GetAllLocations)
+			locations.GET("/:id", application.AdminHandler.GetLocationDetail)
+		}
+
+		officers := admin.Group("/officers")
+		{
+			officers.GET("/", application.AdminHandler.GetAllOfficers)
+			officers.GET("/:id", application.AdminHandler.GetOfficerDetail)
+		}
+
+		admin.GET("/reports", application.AdminHandler.GetRevenueReport)
+
+		lokasiParkir := admin.Group("/lokasi-parkir")
+		{
+			lokasiParkir.GET("/", application.LokasiParkirHandler.GetAllLokasiParkir)
+			lokasiParkir.GET("/:id", application.LokasiParkirHandler.GetLokasiParkirByID)
+			lokasiParkir.GET("/petugas/:petugas_id", application.LokasiParkirHandler.GetLokasiParkirByPetugasID)
+			lokasiParkir.POST("/", application.LokasiParkirHandler.CreateLokasiParkir)
+			lokasiParkir.PUT("/:id", application.LokasiParkirHandler.UpdateLokasiParkir)
+			lokasiParkir.DELETE("/:id", application.LokasiParkirHandler.DeleteLokasiParkir)
+		}
 	}
 
 	transaksiParkir := v1.Group("/transaksi-parkir")
 	transaksiParkir.Use(middlewares.AuthMiddleware())
 	{
 		transaksiParkir.GET("/:id", application.TransaksiParkirHandler.GetTransaksiParkirByID)
-	}
-
-	lokasiParkir := v1.Group("/lokasi-parkir")
-	lokasiParkir.Use(middlewares.AuthMiddleware())
-	{
-		lokasiParkir.GET("/", application.LokasiParkirHandler.GetAllLokasiParkir)
-		lokasiParkir.GET("/:id", application.LokasiParkirHandler.GetLokasiParkirByID)
-		lokasiParkir.GET("/petugas/:petugas_id", application.LokasiParkirHandler.GetLokasiParkirByPetugasID)
-		lokasiParkir.POST("/", application.LokasiParkirHandler.CreateLokasiParkir)
-		lokasiParkir.PUT("/:id", application.LokasiParkirHandler.UpdateLokasiParkir)
-		lokasiParkir.DELETE("/:id", application.LokasiParkirHandler.DeleteLokasiParkir)
 	}
 
 	return router

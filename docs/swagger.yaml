@@ -19,6 +19,82 @@ definitions:
       message:
         type: string
     type: object
+  dto.AdminDashboardResponseDTO:
+    properties:
+      location_performance:
+        items:
+          $ref: '#/definitions/dto.LocationPerformanceDTO'
+        type: array
+      period_label:
+        type: string
+      range:
+        type: string
+      recent_transactions:
+        items:
+          $ref: '#/definitions/dto.AdminRecentTransactionDTO'
+        type: array
+      summary:
+        $ref: '#/definitions/dto.AdminSummaryDTO'
+      trend:
+        items:
+          $ref: '#/definitions/dto.AdminTrendDTO'
+        type: array
+    type: object
+  dto.AdminRecentTransactionDTO:
+    properties:
+      amount_rp:
+        type: integer
+      id:
+        type: string
+      location_name:
+        type: string
+      status:
+        type: string
+      time:
+        type: string
+      vehicle_type:
+        type: string
+    type: object
+  dto.AdminSummaryDTO:
+    properties:
+      active_locations:
+        type: integer
+      active_officers_today:
+        type: integer
+      mobil_count:
+        type: integer
+      motor_count:
+        type: integer
+      total_revenue_rp:
+        type: integer
+      total_transactions:
+        type: integer
+    type: object
+  dto.AdminTrendDTO:
+    properties:
+      date:
+        description: Format "YYYY-MM-DD"
+        type: string
+      label:
+        description: 'Format hari: "Sen", "Sel", dst.'
+        type: string
+      revenue_rp:
+        type: integer
+      transaction_count:
+        type: integer
+    type: object
+  dto.LocationPerformanceDTO:
+    properties:
+      location_name:
+        type: string
+      officers_on_duty:
+        description: Nama-nama petugas digabung string
+        type: string
+      revenue_today_rp:
+        type: integer
+      transactions_today:
+        type: integer
+    type: object
   dto.LoginRequestDTO:
     properties:
       email:
@@ -80,6 +156,36 @@ definitions:
       transaction_status:
         type: string
       transaction_time:
+        type: string
+    type: object
+  dto.OfficerDashboardResponseDTO:
+    properties:
+      alamat:
+        type: string
+      nama_lokasi:
+        type: string
+      nama_petugas:
+        type: string
+      total_mobil:
+        type: integer
+      total_motor:
+        type: integer
+      total_pendapatan:
+        type: integer
+      transactions:
+        items:
+          $ref: '#/definitions/dto.OfficerRecentTransactionDTO'
+        type: array
+    type: object
+  dto.OfficerRecentTransactionDTO:
+    properties:
+      id:
+        type: string
+      jenis_kendaraan:
+        type: string
+      tarif:
+        type: integer
+      waktu:
         type: string
     type: object
   dto.OtpCodeRequestDTO:
@@ -215,6 +321,8 @@ definitions:
         type: string
       is_verified:
         type: boolean
+      lokasi:
+        $ref: '#/definitions/dto.LokasiParkirResponseDTO'
       name:
         type: string
       password:
@@ -245,6 +353,29 @@ info:
   title: Parkin API
   version: "1.0"
 paths:
+  /admin/dashboard:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve global analytics, trend metrics, recent streams, and spot
+        performance using fast Go-runtime mapping
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/domain.HttpResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AdminDashboardResponseDTO'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get Admin Dashboard Analytics
+      tags:
+      - Admin
   /auth/login:
     post:
       consumes:
@@ -653,10 +784,52 @@ paths:
       summary: Handle Midtrans payment callback
       tags:
       - Midtrans
+  /officer/dashboard:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve dashboard data for the authenticated parking officer,
+        including profile info and recent transactions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.OfficerDashboardResponseDTO'
+      security:
+      - BearerAuth: []
+      summary: Get officer dashboard data
+      tags:
+      - Officer
+  /officer/profile:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.HttpResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - profile
   /officer/qr-code:
     post:
       consumes:
       - application/json
+      description: Create a new QR session for petugas to generate QR code for parking
+        transactions
       produces:
       - application/json
       responses:
@@ -676,7 +849,40 @@ paths:
       - BearerAuth: []
       summary: Create a new QR session for petugas
       tags:
-      - qr-session
+      - Officer
+  /officer/transactions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all parking transactions for the authenticated user, with
+        optional pagination and filtering
+      parameters:
+      - description: Page number for pagination
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page for pagination
+        in: query
+        name: limit
+        type: integer
+      - description: Filter for transactions (semua, minggu, bulan)
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.TransaksiParkirResponseDTO'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Get all parking transactions for a user
+      tags:
+      - Transaksi Parkir
   /topup/{order_id}/status:
     get:
       consumes:
@@ -789,7 +995,7 @@ paths:
       summary: Get parking transaction by ID
       tags:
       - Transaksi Parkir
-  /users:
+  /user:
     get:
       produces:
       - application/json
@@ -843,7 +1049,7 @@ paths:
       summary: Create a new user
       tags:
       - users
-  /users/{id}:
+  /user/{id}:
     delete:
       parameters:
       - description: User ID
@@ -931,7 +1137,7 @@ paths:
       summary: Update user
       tags:
       - users
-  /users/me/saldo:
+  /user/me/saldo:
     get:
       produces:
       - application/json
@@ -989,7 +1195,7 @@ paths:
       summary: Deduct user saldo
       tags:
       - users
-  /users/profile:
+  /user/profile:
     get:
       produces:
       - application/json
@@ -1010,23 +1216,23 @@ paths:
       - BearerAuth: []
       summary: Get user profile
       tags:
-      - users
-  /users/transactions:
+      - profile
+  /user/transactions:
     get:
       consumes:
       - application/json
-      description: Retrieve all parking transactions for the authenticated user with
-        pagination and filtering
+      description: Retrieve all parking transactions for the authenticated user, with
+        optional pagination and filtering
       parameters:
-      - description: Page number
+      - description: Page number for pagination
         in: query
         name: page
         type: integer
-      - description: Number of items per page
+      - description: Number of items per page for pagination
         in: query
         name: limit
         type: integer
-      - description: Filter by time range (semua, minggu, bulan)
+      - description: Filter for transactions (semua, minggu, bulan)
         in: query
         name: filter
         type: string
@@ -1036,12 +1242,14 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.HttpResponse'
+            items:
+              $ref: '#/definitions/dto.TransaksiParkirResponseDTO'
+            type: array
       security:
       - BearerAuth: []
-      summary: Get all parking transactions for the authenticated user
+      summary: Get all parking transactions for a user
       tags:
-      - users
+      - Transaksi Parkir
 securityDefinitions:
   BearerAuth:
     in: header

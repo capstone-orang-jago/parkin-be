@@ -86,7 +86,7 @@ func RegisterRoutes(application app.App) http.Handler {
 	}
 
 	admin := v1.Group("/admin")
-	admin.Use(middlewares.AuthMiddleware()).Use(middlewares.RoleMiddleware("admin"))
+	admin.Use(middlewares.AuthMiddleware()).Use(middlewares.RoleMiddleware(domain.RoleAdmin, domain.RoleDishub))
 	{
 		admin.GET("/", application.UserHandler.GetAllUsers)
 		admin.GET("/:id", application.UserHandler.GetUserByID)
@@ -95,6 +95,9 @@ func RegisterRoutes(application app.App) http.Handler {
 		admin.DELETE("/:id", application.UserHandler.DeleteUser)
 		admin.GET("/me/saldo", application.UserHandler.GetUserSaldo)
 		admin.PUT("/me/saldo", application.UserHandler.DeductUserSaldo)
+
+		admin.GET("/dashboard", application.DashboardHandler.GetAdminDashboard)
+		// admin.GET("/transactions", application.DashboardHandler.GetAdminDashboard)
 	}
 
 	transaksiParkir := v1.Group("/transaksi-parkir")

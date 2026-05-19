@@ -9,6 +9,46 @@
     "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
+        "/admin/dashboard": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve global analytics, trend metrics, recent streams, and spot performance using fast Go-runtime mapping",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get Admin Dashboard Analytics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/domain.HttpResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AdminDashboardResponseDTO"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "consumes": [
@@ -649,13 +689,14 @@
                 }
             }
         },
-        "/officer/qr-code": {
-            "post": {
+        "/officer/dashboard": {
+            "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
+                "description": "Retrieve dashboard data for the authenticated parking officer, including profile info and recent transactions",
                 "consumes": [
                     "application/json"
                 ],
@@ -663,7 +704,71 @@
                     "application/json"
                 ],
                 "tags": [
-                    "qr-session"
+                    "Officer"
+                ],
+                "summary": "Get officer dashboard data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OfficerDashboardResponseDTO"
+                        }
+                    }
+                }
+            }
+        },
+        "/officer/profile": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile"
+                ],
+                "summary": "Get user profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/officer/qr-code": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new QR session for petugas to generate QR code for parking transactions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Officer"
                 ],
                 "summary": "Create a new QR session for petugas",
                 "responses": {
@@ -683,6 +788,57 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/domain.HttpResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/officer/transactions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve all parking transactions for the authenticated user, with optional pagination and filtering",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transaksi Parkir"
+                ],
+                "summary": "Get all parking transactions for a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number for pagination",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items per page for pagination",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter for transactions (semua, minggu, bulan)",
+                        "name": "filter",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.TransaksiParkirResponseDTO"
+                            }
                         }
                     }
                 }
@@ -864,7 +1020,7 @@
                 }
             }
         },
-        "/users": {
+        "/user": {
             "get": {
                 "security": [
                     {
@@ -951,7 +1107,7 @@
                 }
             }
         },
-        "/users/me/saldo": {
+        "/user/me/saldo": {
             "get": {
                 "security": [
                     {
@@ -1048,7 +1204,7 @@
                 }
             }
         },
-        "/users/profile": {
+        "/user/profile": {
             "get": {
                 "security": [
                     {
@@ -1059,7 +1215,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "profile"
                 ],
                 "summary": "Get user profile",
                 "responses": {
@@ -1084,14 +1240,14 @@
                 }
             }
         },
-        "/users/transactions": {
+        "/user/transactions": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve all parking transactions for the authenticated user with pagination and filtering",
+                "description": "Retrieve all parking transactions for the authenticated user, with optional pagination and filtering",
                 "consumes": [
                     "application/json"
                 ],
@@ -1099,25 +1255,25 @@
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "Transaksi Parkir"
                 ],
-                "summary": "Get all parking transactions for the authenticated user",
+                "summary": "Get all parking transactions for a user",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Page number",
+                        "description": "Page number for pagination",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "Number of items per page",
+                        "description": "Number of items per page for pagination",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by time range (semua, minggu, bulan)",
+                        "description": "Filter for transactions (semua, minggu, bulan)",
                         "name": "filter",
                         "in": "query"
                     }
@@ -1126,13 +1282,16 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.HttpResponse"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.TransaksiParkirResponseDTO"
+                            }
                         }
                     }
                 }
             }
         },
-        "/users/{id}": {
+        "/user/{id}": {
             "get": {
                 "security": [
                     {
@@ -1303,6 +1462,121 @@
                 }
             }
         },
+        "dto.AdminDashboardResponseDTO": {
+            "type": "object",
+            "properties": {
+                "location_performance": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.LocationPerformanceDTO"
+                    }
+                },
+                "period_label": {
+                    "type": "string"
+                },
+                "range": {
+                    "type": "string"
+                },
+                "recent_transactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AdminRecentTransactionDTO"
+                    }
+                },
+                "summary": {
+                    "$ref": "#/definitions/dto.AdminSummaryDTO"
+                },
+                "trend": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AdminTrendDTO"
+                    }
+                }
+            }
+        },
+        "dto.AdminRecentTransactionDTO": {
+            "type": "object",
+            "properties": {
+                "amount_rp": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "location_name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "vehicle_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AdminSummaryDTO": {
+            "type": "object",
+            "properties": {
+                "active_locations": {
+                    "type": "integer"
+                },
+                "active_officers_today": {
+                    "type": "integer"
+                },
+                "mobil_count": {
+                    "type": "integer"
+                },
+                "motor_count": {
+                    "type": "integer"
+                },
+                "total_revenue_rp": {
+                    "type": "integer"
+                },
+                "total_transactions": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.AdminTrendDTO": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "description": "Format \"YYYY-MM-DD\"",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "Format hari: \"Sen\", \"Sel\", dst.",
+                    "type": "string"
+                },
+                "revenue_rp": {
+                    "type": "integer"
+                },
+                "transaction_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.LocationPerformanceDTO": {
+            "type": "object",
+            "properties": {
+                "location_name": {
+                    "type": "string"
+                },
+                "officers_on_duty": {
+                    "description": "Nama-nama petugas digabung string",
+                    "type": "string"
+                },
+                "revenue_today_rp": {
+                    "type": "integer"
+                },
+                "transactions_today": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.LoginRequestDTO": {
             "type": "object",
             "properties": {
@@ -1395,6 +1669,52 @@
                     "type": "string"
                 },
                 "transaction_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.OfficerDashboardResponseDTO": {
+            "type": "object",
+            "properties": {
+                "alamat": {
+                    "type": "string"
+                },
+                "nama_lokasi": {
+                    "type": "string"
+                },
+                "nama_petugas": {
+                    "type": "string"
+                },
+                "total_mobil": {
+                    "type": "integer"
+                },
+                "total_motor": {
+                    "type": "integer"
+                },
+                "total_pendapatan": {
+                    "type": "integer"
+                },
+                "transactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.OfficerRecentTransactionDTO"
+                    }
+                }
+            }
+        },
+        "dto.OfficerRecentTransactionDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "jenis_kendaraan": {
+                    "type": "string"
+                },
+                "tarif": {
+                    "type": "integer"
+                },
+                "waktu": {
                     "type": "string"
                 }
             }
@@ -1601,6 +1921,9 @@
                 },
                 "is_verified": {
                     "type": "boolean"
+                },
+                "lokasi": {
+                    "$ref": "#/definitions/dto.LokasiParkirResponseDTO"
                 },
                 "name": {
                     "type": "string"

@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/capstone-orang-jago/parkin-be/domain"
 	"github.com/sirupsen/logrus"
@@ -63,7 +62,7 @@ func (repo *lokasiParkirRepository) GetAllLokasiParkir(ctx context.Context) (lok
 
 func (repo *lokasiParkirRepository) GetLokasiParkirByID(ctx context.Context, id string) (lokasiParkir *domain.LokasiParkir, err error) {
 	query := `SELECT l.id, l.nama_lokasi, l.alamat, l.is_active,
-	p.id, p.name, p.email
+	p.id, p.name, p.email, p.role
 	FROM lokasi_parkir l
 	LEFT JOIN users p ON l.petugas_id = p.id
 	WHERE l.id = $1`
@@ -71,7 +70,7 @@ func (repo *lokasiParkirRepository) GetLokasiParkirByID(ctx context.Context, id 
 	lokasiParkir = &domain.LokasiParkir{
 		Petugas: &domain.User{},
 	}
-	err = repo.db.QueryRowContext(ctx, query, id).Scan(&lokasiParkir.ID, &lokasiParkir.NamaLokasi, &lokasiParkir.Alamat, &lokasiParkir.IsActive, &lokasiParkir.Petugas.ID, &lokasiParkir.Petugas.Name, &lokasiParkir.Petugas.Email)
+	err = repo.db.QueryRowContext(ctx, query, id).Scan(&lokasiParkir.ID, &lokasiParkir.NamaLokasi, &lokasiParkir.Alamat, &lokasiParkir.IsActive, &lokasiParkir.Petugas.ID, &lokasiParkir.Petugas.Name, &lokasiParkir.Petugas.Email, &lokasiParkir.Petugas.Role)
 	if err == sql.ErrNoRows {
 		logrus.WithError(err).Info("repo.GetLokasiParkirByID: no lokasi parkir found for ID")
 		return nil, nil
@@ -79,9 +78,6 @@ func (repo *lokasiParkirRepository) GetLokasiParkirByID(ctx context.Context, id 
 		logrus.WithError(err).Error("repo.GetLokasiParkirByID: failed to get lokasi parkir by ID")
 		return nil, err
 	}
-
-	fmt.Printf("ISI DATA DI REPO: %+v\n", lokasiParkir)
-	fmt.Printf("ISI PETUGAS DI REPO: %+v\n", lokasiParkir.Petugas)
 
 	return lokasiParkir, err
 }

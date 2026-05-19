@@ -107,7 +107,7 @@ func (usecase *transaksiParkirUsecase) CreateTransaksiParkir(ctx context.Context
 	case "motor":
 		tarif = 2000
 	case "mobil":
-		tarif = 5000
+		tarif = 4000
 	default:
 		return nil, errors.New("invalid jenis kendaraan")
 	}
@@ -155,6 +155,12 @@ func (usecase *transaksiParkirUsecase) CreateTransaksiParkir(ctx context.Context
 		err = usecase.qrSessionRepo.RevokeQRSession(txCtx, qrSession.ID)
 		if err != nil {
 			logrus.WithError(err).Error("usecase.CreateTransaksiParkir: failed to revoke QR session")
+			return err
+		}
+
+		err = usecase.userRepo.AddUserSaldo(txCtx, petugasID, tarif)
+		if err != nil {
+			logrus.WithError(err).Error("usecase.CreateTransaksiParkir: failed to add saldo to petugas")
 			return err
 		}
 		return nil

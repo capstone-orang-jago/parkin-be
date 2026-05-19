@@ -39,13 +39,10 @@ type (
 
 	UserUsecase interface {
 		GetUserByID(ctx context.Context, id string) (res *dto.UserResponseDTO, err error)
-		GetUserByEmail(ctx context.Context, email string) (res *dto.UserResponseDTO, err error)
 		GetAllUsers(ctx context.Context) ([]*dto.UserResponseDTO, error)
 		CreateUser(ctx context.Context, req dto.UserRequestDTO) (res *dto.UserResponseDTO, err error)
 		UpdateUser(ctx context.Context, req dto.UserRequestDTO, id string) (res *dto.UserResponseDTO, err error)
 		DeleteUser(ctx context.Context, id string) error
-		GetUserSaldo(ctx context.Context, id string) (int64, error)
-		DeductUserSaldo(ctx context.Context, id string, amount int64) error
 		GetUserProfile(ctx context.Context, id, role string) (res *dto.UserResponseDTO, err error)
 	}
 
@@ -55,8 +52,6 @@ type (
 		CreateUser(c *gin.Context)
 		UpdateUser(c *gin.Context)
 		DeleteUser(c *gin.Context)
-		GetUserSaldo(c *gin.Context)
-		DeductUserSaldo(c *gin.Context)
 		GetUserProfile(c *gin.Context)
 	}
 )

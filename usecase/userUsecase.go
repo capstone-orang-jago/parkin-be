@@ -73,30 +73,6 @@ func (usecase *userUsecase) GetUserByID(ctx context.Context, id string) (res *dt
 	return response, nil
 }
 
-func (usecase *userUsecase) GetUserByEmail(ctx context.Context, email string) (res *dto.UserResponseDTO, err error) {
-	user, err := usecase.userRepo.GetUserByEmail(ctx, email)
-
-	if err != nil {
-		logrus.WithError(err).Error("usecase.GetUserByEmail: failed to get user by email")
-		return nil, err
-	} else if user == nil {
-		logrus.WithError(err).Info("usecase.GetUserByEmail: no user found for email")
-		return nil, nil
-	}
-
-	response := &dto.UserResponseDTO{
-		ID:         user.ID,
-		Name:       user.Name,
-		Telephone:  user.Telephone,
-		Email:      user.Email,
-		Role:       user.Role,
-		Saldo:      user.Saldo,
-		IsVerified: user.IsVerified,
-	}
-
-	return response, nil
-}
-
 func (usecase *userUsecase) GetUserProfile(ctx context.Context, id, role string) (res *dto.UserResponseDTO, err error) {
 	user, err := usecase.userRepo.GetUserProfile(ctx, id, role)
 	if err != nil {

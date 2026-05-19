@@ -22,7 +22,7 @@ func NewLokasiParkirHandler(lokasiParkirUsecase domain.LokasiParkirUsecase) doma
 
 // CreateLokasiParkir godoc
 // @Summary Create a new lokasi parkir
-// @Tags lokasi-parkir
+// @Tags Admin
 // @Security BearerAuth
 // @Accept json
 // @Produce json
@@ -30,7 +30,7 @@ func NewLokasiParkirHandler(lokasiParkirUsecase domain.LokasiParkirUsecase) doma
 // @Success 201 {object} dto.LokasiParkirResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /lokasi-parkir [post]
+// @Router admin/lokasi-parkir [post]
 func (handler *lokasiParkirHandler) CreateLokasiParkir(c *gin.Context) {
 	var req dto.LokasiParkirRequestDTO
 	if err := helpers.DecodeJSON(c, &req); err != nil {
@@ -61,12 +61,12 @@ func (handler *lokasiParkirHandler) CreateLokasiParkir(c *gin.Context) {
 
 // GetAllLokasiParkir godoc
 // @Summary Get all lokasi parkir
-// @Tags lokasi-parkir
+// @Tags Admin
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {array} dto.LokasiParkirResponseDTO
 // @Failure 500 {object} domain.HttpResponse
-// @Router /lokasi-parkir [get]
+// @Router admin/lokasi-parkir [get]
 func (handler *lokasiParkirHandler) GetAllLokasiParkir(c *gin.Context) {
 	lokasiParkir, err := handler.lokasiParkirUsecase.GetAllLokasiParkir(c.Request.Context())
 	if err != nil {
@@ -87,14 +87,14 @@ func (handler *lokasiParkirHandler) GetAllLokasiParkir(c *gin.Context) {
 
 // GetLokasiParkirByID godoc
 // @Summary Get lokasi parkir by ID
-// @Tags lokasi-parkir
+// @Tags Admin
 // @Security BearerAuth
 // @Produce json
 // @Param id path string true "Lokasi Parkir ID"
 // @Success 200 {object} dto.LokasiParkirResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /lokasi-parkir/{id} [get]
+// @Router admin/lokasi-parkir/{id} [get]
 func (handler *lokasiParkirHandler) GetLokasiParkirByID(c *gin.Context) {
 	id := c.Param("id")
 	lokasiParkir, err := handler.lokasiParkirUsecase.GetLokasiParkirByID(c.Request.Context(), id)
@@ -116,14 +116,14 @@ func (handler *lokasiParkirHandler) GetLokasiParkirByID(c *gin.Context) {
 
 // GetLokasiParkirByPetugasID godoc
 // @Summary Get lokasi parkir by Petugas ID
-// @Tags lokasi-parkir
+// @Tags Admin
 // @Security BearerAuth
 // @Produce json
 // @Param petugas_id path string true "Petugas ID"
 // @Success 200 {object} dto.LokasiParkirResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /lokasi-parkir/petugas/{petugas_id} [get]
+// @Router admin/lokasi-parkir/petugas/{petugas_id} [get]
 func (handler *lokasiParkirHandler) GetLokasiParkirByPetugasID(c *gin.Context) {
 	petugasID := c.Param("petugas_id")
 	lokasiParkir, err := handler.lokasiParkirUsecase.GetLokasiParkirByPetugasID(c.Request.Context(), petugasID)
@@ -145,7 +145,7 @@ func (handler *lokasiParkirHandler) GetLokasiParkirByPetugasID(c *gin.Context) {
 
 // UpdateLokasiParkir godoc
 // @Summary Update lokasi parkir
-// @Tags lokasi-parkir
+// @Tags Admin
 // @Security BearerAuth
 // @Accept json
 // @Produce json
@@ -154,7 +154,7 @@ func (handler *lokasiParkirHandler) GetLokasiParkirByPetugasID(c *gin.Context) {
 // @Success 200 {object} dto.LokasiParkirResponseDTO
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /lokasi-parkir/{id} [put]
+// @Router admin/lokasi-parkir/{id} [put]
 func (handler *lokasiParkirHandler) UpdateLokasiParkir(c *gin.Context) {
 	id := c.Param("id")
 
@@ -187,14 +187,14 @@ func (handler *lokasiParkirHandler) UpdateLokasiParkir(c *gin.Context) {
 
 // DeleteLokasiParkir godoc
 // @Summary Delete lokasi parkir
-// @Tags lokasi-parkir
+// @Tags Admin
 // @Security BearerAuth
 // @Produce json
 // @Param id path string true "Lokasi Parkir ID"
 // @Success 200 {object} domain.HttpResponse
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /lokasi-parkir/{id} [delete]
+// @Router admin/lokasi-parkir/{id} [delete]
 func (handler *lokasiParkirHandler) DeleteLokasiParkir(c *gin.Context) {
 	id := c.Param("id")
 

@@ -132,7 +132,7 @@ func (usecase *midtransUsecase) TopUpSaldo(ctx context.Context, cb dto.MidtransC
 			return errors.New("top-up record not found")
 		}
 
-		if topUp.Status == "settlement" || topUp.Status == "success" {
+		if topUp.Status == "sukses" {
 			logrus.Info("usecase.TopUpSaldo: transaction already processed previously")
 			return nil
 		}
@@ -145,25 +145,34 @@ func (usecase *midtransUsecase) TopUpSaldo(ctx context.Context, cb dto.MidtransC
 		rawCallback, _ := json.Marshal(cb)
 		topUp.RawCallBack = rawCallback
 		topUp.MidtransTransactionID = cb.TransactionID
-		topUp.Status = "sukses"
 
 		switch cb.TransactionStatus {
 		case "settlement", "capture":
-			user.Saldo += topUp.Nominal
-			user.UpdatedAt = time.Now()
+			topUp.Status = "sukses"
 			topUp.PaidAt = time.Now()
 
 			err = usecase.userRepo.AddUserSaldo(txCtx, user.ID, topUp.Nominal)
 			if err != nil {
+				logrus.WithError(err).Error("usecase.TopUpSaldo: failed to add user saldo")
 				return err
 			}
 
-		case "pending", "deny", "expire", "cancel":
-			logrus.Infof("usecase.TopUpSaldo: transaction status updated to %s", cb.TransactionStatus)
+		case "expire":
+			topUp.Status = "expired"
+			logrus.Infof("usecase.TopUpSaldo: transaction expired")
+
+		case "deny", "cancel":
+			topUp.Status = "gagal"
+			logrus.Infof("usecase.TopUpSaldo: transaction failed or canceled")
+
+		case "pending":
+			topUp.Status = "pending"
+			logrus.Infof("usecase.TopUpSaldo: transaction is still pending")
 		}
 
 		err = usecase.topUpRepo.UpdateTopUp(txCtx, topUp)
 		if err != nil {
+			logrus.WithError(err).Error("usecase.TopUpSaldo: failed to update top-up record")
 			return err
 		}
 

@@ -128,11 +128,5 @@ func RegisterRoutes(application app.App) http.Handler {
 		}
 	}
 
-	transaksiParkir := v1.Group("/transaksi-parkir")
-	transaksiParkir.Use(middlewares.AuthMiddleware())
-	{
-		transaksiParkir.GET("/:id", application.TransaksiParkirHandler.GetTransaksiParkirByID)
-	}
-
 	return router
 }

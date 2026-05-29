@@ -3,7 +3,7 @@ package domain
 type UserRole string
 
 const (
-	RoleAdmin    UserRole = "admin"
+	RoleAdmin    UserRole = "superadmin"
 	RolePengguna UserRole = "pengguna"
 	RolePetugas  UserRole = "petugas"
 	RoleDishub   UserRole = "dishub"

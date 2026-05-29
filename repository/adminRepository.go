@@ -31,12 +31,12 @@ func (r *adminRepository) GetAllTransactions(ctx context.Context, q domain.Admin
 
 	if q.DateFrom != "" {
 		baseQuery += fmt.Sprintf(" AND t.created_at >= $%d", counter)
-		args = append(args, q.DateFrom)
+		args = append(args, q.DateFrom+" 00:00:00+08")
 		counter++
 	}
 	if q.DateTo != "" {
 		baseQuery += fmt.Sprintf(" AND t.created_at <= $%d", counter)
-		args = append(args, q.DateTo)
+		args = append(args, q.DateTo+" 23:59:59+08")
 		counter++
 	}
 	if q.LocationID != "" {
@@ -304,12 +304,12 @@ func (r *adminRepository) GetRevenueReport(ctx context.Context, q domain.AdminRe
 
 	if q.DateFrom != "" {
 		whereClause += fmt.Sprintf(" AND t.created_at >= $%d", argCount)
-		args = append(args, q.DateFrom)
+		args = append(args, q.DateFrom+" 00:00:00+08")
 		argCount++
 	}
 	if q.DateTo != "" {
 		whereClause += fmt.Sprintf(" AND t.created_at <= $%d", argCount)
-		args = append(args, q.DateTo)
+		args = append(args, q.DateTo+" 23:59:59+08")
 		argCount++
 	}
 	if q.LocationID != "" {

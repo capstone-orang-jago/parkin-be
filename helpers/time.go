@@ -6,11 +6,15 @@ import (
 
 const StandardLayout = "2006-01-02 15:04:05"
 
+var witaZone = time.FixedZone("WITA", 8*60*60)
+
 func GetLocalTime() time.Time {
-	loc, _ := time.LoadLocation("Asia/Makassar")
-	return time.Now().In(loc)
+	return time.Now().In(witaZone)
 }
 
 func FormatTime(t time.Time) string {
-	return t.Format(StandardLayout)
+	if t.IsZero() {
+		return ""
+	}
+	return t.In(witaZone).Format(StandardLayout)
 }

@@ -100,6 +100,12 @@ func (usecase *authUsecase) Register(ctx context.Context, req dto.RegisterReques
 	telephone := req.Telephone
 	if telephone[0] == '0' {
 		telephone = "62" + telephone[1:]
+	} else if telephone[0] == '+' {
+		telephone = telephone[1:]
+	} else if telephone[0] == '8' {
+		telephone = "62" + telephone
+	} else if telephone[0] != '6' && telephone[0] != '8' {
+		return nil, errors.New("invalid telephone number format")
 	}
 
 	existingUser, _ := usecase.userRepo.GetUserByTelephone(ctx, telephone)

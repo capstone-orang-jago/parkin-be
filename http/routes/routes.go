@@ -13,8 +13,6 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	// middleware "github.com/rumahkueku-azzahra-dev/terumpit-coklat/http/middlewares"
-
 	_ "github.com/capstone-orang-jago/parkin-be/docs"
 )
 
@@ -42,9 +40,6 @@ func RegisterRoutes(application app.App) http.Handler {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Serve static files from uploads directory
-	// router.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
-
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	v1 := router.Group("/api/v1")
@@ -55,12 +50,12 @@ func RegisterRoutes(application app.App) http.Handler {
 
 	auth := v1.Group("/auth")
 	{
-		auth.POST("/register", application.AuthHandler.Register)
-		auth.POST("/verify-otp", application.AuthHandler.VerifyRegister)
-		auth.POST("/send-otp", application.OtpCodeHandler.ResendOtpCode)
+		auth.POST("/register", middlewares.RateLimitMiddleware(), application.AuthHandler.Register)
+		auth.POST("/verify-otp", middlewares.RateLimitMiddleware(), application.AuthHandler.VerifyRegister)
+		auth.POST("/send-otp", middlewares.RateLimitMiddleware(), application.OtpCodeHandler.ResendOtpCode)
 
-		auth.POST("/login", application.AuthHandler.Login)
-		auth.POST("/refresh", application.AuthHandler.RefreshToken)
+		auth.POST("/login", middlewares.RateLimitMiddleware(), application.AuthHandler.Login)
+		auth.POST("/refresh", middlewares.RateLimitMiddleware(), application.AuthHandler.RefreshToken)
 		auth.POST("/logout", middlewares.AuthMiddleware(), application.AuthHandler.Logout)
 	}
 
@@ -70,8 +65,8 @@ func RegisterRoutes(application app.App) http.Handler {
 		user.GET("/profile", application.UserHandler.GetUserProfile)
 		user.GET("/transactions", application.TransaksiParkirHandler.GetAllTransaksiParkirByUserID)
 		user.GET("/transactions/:id", application.TransaksiParkirHandler.GetTransaksiParkirByID)
-		user.POST("/parking/pay", application.TransaksiParkirHandler.CreateTransaksiParkir)
-		user.POST("/topup/create", application.MidtransHandler.CreateTopUp)
+		user.POST("/parking/pay", middlewares.RateLimitMiddleware(), application.TransaksiParkirHandler.CreateTransaksiParkir)
+		user.POST("/topup/create", middlewares.RateLimitMiddleware(), application.MidtransHandler.CreateTopUp)
 		user.GET("/topup/:order_id/status", application.MidtransHandler.GetTopUpStatus)
 
 	}
@@ -89,7 +84,7 @@ func RegisterRoutes(application app.App) http.Handler {
 	admin.Use(middlewares.AuthMiddleware()).Use(middlewares.RoleMiddleware(domain.RoleAdmin, domain.RoleDishub))
 	{
 		admin.GET("/dashboard", application.DashboardHandler.GetAdminDashboard)
-		admin.GET("/reports", application.AdminHandler.GetRevenueReport)
+		admin.GET("/reports", middlewares.RateLimitMiddleware(), application.AdminHandler.GetRevenueReport)
 		user := admin.Group("/user")
 		{
 			user.GET("/", application.UserHandler.GetAllUsers)
@@ -99,7 +94,7 @@ func RegisterRoutes(application app.App) http.Handler {
 			user.DELETE("/:id", application.UserHandler.DeleteUser)
 		}
 
-		transactions := admin.Group("/transactions")
+		transactions := admin.Group("/transactions").Use(middlewares.RateLimitMiddleware())
 		{
 			transactions.GET("/", application.AdminHandler.GetAllTransactions)
 			transactions.GET("/:id", application.AdminHandler.GetTransactionDetail)

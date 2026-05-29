@@ -108,8 +108,8 @@ func (repo *lokasiParkirRepository) GetLokasiParkirByPetugasID(ctx context.Conte
 func (repo *lokasiParkirRepository) UpdateLokasiParkir(ctx context.Context, lokasiParkir *domain.LokasiParkir, id string) error {
 	query := `
 			UPDATE lokasi_parkir 
-			SET nama_lokasi = $1, alamat = $2, email = $3, petugas_id = $4, is_active = $5, updated_at = $6 
-			WHERE id = $7
+			SET nama_lokasi = $1, alamat = $2, petugas_id = $3, is_active = $4, updated_at = $5 
+			WHERE id = $6
 			`
 	_, err := repo.db.ExecContext(ctx, query, lokasiParkir.NamaLokasi, lokasiParkir.Alamat, lokasiParkir.PetugasID, lokasiParkir.IsActive, lokasiParkir.UpdatedAt, id)
 	if err != nil {

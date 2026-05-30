@@ -21,6 +21,7 @@ type TransaksiParkir struct {
 	Status         string
 	CreatedAt      time.Time
 	Pengguna       *User
+	Petugas        *User
 	LokasiParkir   *LokasiParkir
 }
 

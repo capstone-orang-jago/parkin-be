@@ -21,10 +21,11 @@ func NewAdminRepository(db *sql.DB) domain.AdminRepository {
 
 func (r *adminRepository) GetAllTransactions(ctx context.Context, q domain.AdminTransaksiQuery) ([]*domain.TransaksiParkir, int64, error) {
 	baseQuery := `
-		FROM transaksi_parkir t
-		LEFT JOIN lokasi_parkir l ON t.lokasi_id = l.id
-		LEFT JOIN users u ON t.pengguna_id = u.id
-		WHERE 1=1`
+        FROM transaksi_parkir t
+        LEFT JOIN lokasi_parkir l ON t.lokasi_id = l.id
+        LEFT JOIN users u ON t.pengguna_id = u.id
+        LEFT JOIN users p ON t.petugas_id = p.id
+        WHERE 1=1`
 
 	var args []interface{}
 	counter := 1
@@ -69,7 +70,7 @@ func (r *adminRepository) GetAllTransactions(ctx context.Context, q domain.Admin
 	}
 
 	offset := (q.Page - 1) * q.Limit
-	dataQuery := fmt.Sprintf("SELECT t.id, t.kode_transaksi, t.jenis_kendaraan, t.tarif, t.saldo_sebelum, t.saldo_sesudah, t.status, t.created_at, l.id, l.nama_lokasi, u.id, u.name, u.email "+baseQuery+" ORDER BY t.created_at DESC LIMIT $%d OFFSET $%d", counter, counter+1)
+	dataQuery := fmt.Sprintf("SELECT t.id, t.kode_transaksi, t.jenis_kendaraan, t.tarif, t.saldo_sebelum, t.saldo_sesudah, t.status, t.created_at, l.id, l.nama_lokasi, u.id, u.name, u.email, p.id, p.name, p.email "+baseQuery+" ORDER BY t.created_at DESC LIMIT $%d OFFSET $%d", counter, counter+1)
 	args = append(args, q.Limit, offset)
 
 	rows, err := exec.QueryContext(ctx, dataQuery, args...)
@@ -81,11 +82,16 @@ func (r *adminRepository) GetAllTransactions(ctx context.Context, q domain.Admin
 
 	var results []*domain.TransaksiParkir
 	for rows.Next() {
-		t := &domain.TransaksiParkir{LokasiParkir: &domain.LokasiParkir{}, Pengguna: &domain.User{}}
+		t := &domain.TransaksiParkir{
+			LokasiParkir: &domain.LokasiParkir{},
+			Pengguna:     &domain.User{},
+			Petugas:      &domain.User{},
+		}
 		err = rows.Scan(
 			&t.ID, &t.KodeTransaksi, &t.JenisKendaraan, &t.Tarif, &t.SaldoSebelum, &t.SaldoSesudah, &t.Status, &t.CreatedAt,
 			&t.LokasiParkir.ID, &t.LokasiParkir.NamaLokasi,
 			&t.Pengguna.ID, &t.Pengguna.Name, &t.Pengguna.Email,
+			&t.Petugas.ID, &t.Petugas.Name, &t.Petugas.Email,
 		)
 		if err != nil {
 			logrus.WithError(err).Error("adminRepository.GetAllTransactions: failed to scan transaction data")

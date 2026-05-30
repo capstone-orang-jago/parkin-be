@@ -49,6 +49,9 @@ func (u *adminUsecase) GetAllTransactions(ctx context.Context, q domain.AdminTra
 		if tx.Pengguna != nil {
 			res.Pengguna = &dto.UserResponseDTO{ID: tx.Pengguna.ID, Name: tx.Pengguna.Name, Email: tx.Pengguna.Email}
 		}
+		if tx.Petugas != nil {
+			res.Petugas = &dto.UserResponseDTO{ID: tx.Petugas.ID, Name: tx.Petugas.Name, Email: tx.Petugas.Email}
+		}
 		if tx.LokasiParkir != nil {
 			res.Lokasi = &dto.LokasiParkirResponseDTO{ID: tx.LokasiParkir.ID, NamaLokasi: tx.LokasiParkir.NamaLokasi}
 		}

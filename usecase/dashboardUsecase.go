@@ -68,13 +68,40 @@ func (usecase *dashboardUsecase) GetOfficerDashboard(ctx context.Context, office
 	}, nil
 }
 
-func (usecase *dashboardUsecase) GetAdminDashboard(ctx context.Context) (*dto.AdminDashboardResponseDTO, error) {
+func (usecase *dashboardUsecase) GetAdminDashboard(ctx context.Context, filterRange string) (*dto.AdminDashboardResponseDTO, error) {
 	now := helpers.GetLocalTime()
-	todayStr := now.Format("2006-01-02")
+	startOfToday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 
-	sevenDaysAgo := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -6)
+	var kpiStartTime time.Time
+	var trendDays int
+	var periodLabel string
 
-	rawTransactions, err := usecase.dashboardRepo.GetRawTransactionsForAdmin(ctx, sevenDaysAgo)
+	indoMonths := []string{"", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"}
+
+	switch filterRange {
+	case "week":
+		kpiStartTime = startOfToday.AddDate(0, 0, -6)
+		trendDays = 7
+		periodLabel = fmt.Sprintf("7 Hari Terakhir · %s - %s", kpiStartTime.Format("02 Jan 2006"), now.Format("02 Jan 2006"))
+	case "month":
+		kpiStartTime = startOfToday.AddDate(0, 0, -29)
+		trendDays = 30
+		periodLabel = fmt.Sprintf("30 Hari Terakhir · %s - %s", kpiStartTime.Format("02 Jan 2006"), now.Format("02 Jan 2006"))
+	default: // "today"
+		filterRange = "today"
+		kpiStartTime = startOfToday
+		trendDays = 7
+		periodLabel = fmt.Sprintf("Hari ini · %d %s %d", now.Day(), indoMonths[now.Month()], now.Year())
+	}
+
+	trendStartTime := startOfToday.AddDate(0, 0, -(trendDays - 1))
+
+	dbStartTime := kpiStartTime
+	if trendStartTime.Before(kpiStartTime) {
+		dbStartTime = trendStartTime
+	}
+
+	rawTransactions, err := usecase.dashboardRepo.GetRawTransactionsForAdmin(ctx, dbStartTime)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetAdminDashboard: failed to get raw transactions")
 		return nil, err
@@ -91,23 +118,22 @@ func (usecase *dashboardUsecase) GetAdminDashboard(ctx context.Context) (*dto.Ad
 		time.Wednesday: "Rab", time.Thursday: "Kam", time.Friday: "Jum", time.Saturday: "Sab",
 	}
 
-	for i, tx := range rawTransactions {
-
+	for _, tx := range rawTransactions {
 		localTxTime := tx.CreatedAt.In(now.Location())
 		txDateStr := localTxTime.Format("2006-01-02")
 
-		if _, exists := trendMap[txDateStr]; !exists {
-			trendMap[txDateStr] = &dto.AdminTrendDTO{
-				Date:             txDateStr,
-				Label:            indoDays[localTxTime.Weekday()],
-				TransactionCount: 0,
-				RevenueRp:        0,
+		if !localTxTime.Before(trendStartTime) {
+			if _, exists := trendMap[txDateStr]; !exists {
+				trendMap[txDateStr] = &dto.AdminTrendDTO{
+					Date:             txDateStr,
+					TransactionCount: 0,
+					RevenueRp:        0,
+				}
 			}
+			trendMap[txDateStr].TransactionCount++
+			trendMap[txDateStr].RevenueRp += tx.Tarif
 		}
-		trendMap[txDateStr].TransactionCount++
-		trendMap[txDateStr].RevenueRp += tx.Tarif
-
-		if txDateStr == todayStr {
+		if !localTxTime.Before(kpiStartTime) {
 			summary.TotalTransactions++
 			summary.TotalRevenueRp += tx.Tarif
 
@@ -137,34 +163,41 @@ func (usecase *dashboardUsecase) GetAdminDashboard(ctx context.Context) (*dto.Ad
 				}
 			}
 		}
+	}
 
-		if i < 10 {
-			locName := "-"
-			if tx.LokasiParkir != nil && tx.LokasiParkir.NamaLokasi != "" {
-				locName = tx.LokasiParkir.NamaLokasi
-			}
-			recentTransactions = append(recentTransactions, &dto.AdminRecentTransactionDTO{
-				ID:           tx.ID,
-				Time:         localTxTime,
-				LocationName: locName,
-				VehicleType:  tx.JenisKendaraan,
-				AmountRp:     tx.Tarif,
-				Status:       tx.Status,
-			})
+	for i := 0; i < len(rawTransactions) && i < 10; i++ {
+		tx := rawTransactions[i]
+		locName := "-"
+		if tx.LokasiParkir != nil && tx.LokasiParkir.NamaLokasi != "" {
+			locName = tx.LokasiParkir.NamaLokasi
 		}
+		recentTransactions = append(recentTransactions, &dto.AdminRecentTransactionDTO{
+			ID:           tx.ID,
+			Time:         tx.CreatedAt.In(now.Location()),
+			LocationName: locName,
+			VehicleType:  tx.JenisKendaraan,
+			AmountRp:     tx.Tarif,
+			Status:       tx.Status,
+		})
 	}
 
 	var trendSlice []*dto.AdminTrendDTO
-	for d := 0; d < 7; d++ {
-		dayDate := sevenDaysAgo.AddDate(0, 0, d)
+	for d := 0; d < trendDays; d++ {
+		dayDate := trendStartTime.AddDate(0, 0, d)
 		dayStr := dayDate.Format("2006-01-02")
 
+		label := indoDays[dayDate.Weekday()]
+		if trendDays > 7 {
+			label = dayDate.Format("02 Jan")
+		}
+
 		if val, exists := trendMap[dayStr]; exists {
+			val.Label = label
 			trendSlice = append(trendSlice, val)
 		} else {
 			trendSlice = append(trendSlice, &dto.AdminTrendDTO{
 				Date:             dayStr,
-				Label:            indoDays[dayDate.Weekday()],
+				Label:            label,
 				TransactionCount: 0,
 				RevenueRp:        0,
 			})
@@ -191,11 +224,8 @@ func (usecase *dashboardUsecase) GetAdminDashboard(ctx context.Context) (*dto.Ad
 	summary.ActiveLocations = int64(len(perfMap))
 	summary.ActiveOfficersToday = int64(len(uniqueOfficersGlobally))
 
-	indoMonths := []string{"", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"}
-	periodLabel := fmt.Sprintf("Hari ini · %d %s %d", now.Day(), indoMonths[now.Month()], now.Year())
-
 	return &dto.AdminDashboardResponseDTO{
-		Range:               "today",
+		Range:               filterRange,
 		PeriodLabel:         periodLabel,
 		Summary:             summary,
 		Trend:               trendSlice,

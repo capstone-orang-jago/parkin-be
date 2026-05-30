@@ -51,10 +51,25 @@ func (handler *dashboardHandler) GetOfficerDashboard(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
+// @Param        range query string false "Filter range (today, week, month) - default is today" Enums(today, week, month)
 // @Success      200  {object}  domain.HttpResponse{data=dto.AdminDashboardResponseDTO}
 // @Router       /admin/dashboard [get]
 func (handler *dashboardHandler) GetAdminDashboard(c *gin.Context) {
-	dashboardData, err := handler.dashboardUsecase.GetAdminDashboard(c.Request.Context())
+	var query domain.AdminDashboardQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		logrus.WithError(err).Error("handler.GetAdminDashboard: invalid query parameter")
+		helpers.Response(c, domain.HttpResponse{
+			Code:    400,
+			Message: "Invalid query parameter. Use: today, week, or month.",
+		})
+		return
+	}
+
+	if query.Range == "" {
+		query.Range = "today"
+	}
+
+	dashboardData, err := handler.dashboardUsecase.GetAdminDashboard(c.Request.Context(), query.Range)
 	if err != nil {
 		logrus.WithError(err).Error("handler.GetAdminDashboard: failed to crunch admin dashboard analytics")
 		helpers.Response(c, domain.HttpResponse{

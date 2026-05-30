@@ -8,7 +8,7 @@ type TransaksiParkirRequestDTO struct {
 type TransaksiParkirResponseDTO struct {
 	ID             string                   `json:"id"`
 	KodeTransaksi  string                   `json:"kode_transaksi"`
-	Pengguna       *UserResponseDTO         `json:"pengguna, omitempty"`
+	Pengguna       *UserResponseDTO         `json:"pengguna,omitempty"`
 	Petugas        *UserResponseDTO         `json:"petugas,omitempty"`
 	Lokasi         *LokasiParkirResponseDTO `json:"lokasi"`
 	JenisKendaraan string                   `json:"jenis_kendaraan"`

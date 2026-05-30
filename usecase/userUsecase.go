@@ -133,7 +133,7 @@ func (usecase *userUsecase) CreateUser(ctx context.Context, req dto.UserRequestD
 		Telephone:  req.Telephone,
 		Email:      req.Email,
 		Password:   req.Password,
-		Role:       "pengguna",
+		Role:       "petugas",
 		Saldo:      0,
 		IsVerified: false,
 	}

@@ -392,6 +392,8 @@ definitions:
         $ref: '#/definitions/dto.LokasiParkirResponseDTO'
       pengguna:
         $ref: '#/definitions/dto.UserResponseDTO'
+      petugas:
+        $ref: '#/definitions/dto.UserResponseDTO'
       saldo_sebelum:
         type: integer
       saldo_sesudah:
@@ -453,6 +455,15 @@ paths:
       - application/json
       description: Retrieve global analytics, trend metrics, recent streams, and spot
         performance using fast Go-runtime mapping
+      parameters:
+      - description: Filter range (today, week, month) - default is today
+        enum:
+        - today
+        - week
+        - month
+        in: query
+        name: range
+        type: string
       produces:
       - application/json
       responses:

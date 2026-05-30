@@ -33,6 +33,19 @@ const docTemplate = `{
                     "admin"
                 ],
                 "summary": "Get Admin Dashboard Analytics",
+                "parameters": [
+                    {
+                        "enum": [
+                            "today",
+                            "week",
+                            "month"
+                        ],
+                        "type": "string",
+                        "description": "Filter range (today, week, month) - default is today",
+                        "name": "range",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2342,6 +2355,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/dto.LokasiParkirResponseDTO"
                 },
                 "pengguna": {
+                    "$ref": "#/definitions/dto.UserResponseDTO"
+                },
+                "petugas": {
                     "$ref": "#/definitions/dto.UserResponseDTO"
                 },
                 "saldo_sebelum": {

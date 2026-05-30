@@ -17,11 +17,24 @@ func NewLokasiParkirRepository(db *sql.DB) domain.LokasiParkirRepository {
 }
 
 func (repo *lokasiParkirRepository) CreateLokasiParkir(ctx context.Context, lokasiParkir *domain.LokasiParkir) error {
-	query := `INSERT INTO lokasi_parkir (nama_lokasi, alamat, petugas_id, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)`
+	queryInsert := `INSERT INTO lokasi_parkir (nama_lokasi, alamat, petugas_id, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
 
-	_, err := repo.db.ExecContext(ctx, query, lokasiParkir.NamaLokasi, lokasiParkir.Alamat, lokasiParkir.PetugasID, lokasiParkir.IsActive, lokasiParkir.CreatedAt, lokasiParkir.UpdatedAt)
+	err := repo.db.QueryRowContext(ctx, queryInsert, lokasiParkir.NamaLokasi, lokasiParkir.Alamat, lokasiParkir.PetugasID, lokasiParkir.IsActive, lokasiParkir.CreatedAt, lokasiParkir.UpdatedAt).Scan(&lokasiParkir.ID)
 	if err != nil {
 		logrus.WithError(err).Error("repo.CreateLokasiParkir: failed to create lokasi parkir")
+		return err
+	}
+
+	querySelect := `SELECT l.id, l.nama_lokasi, l.alamat, l.is_active,
+					p.id, p.name, p.email
+					FROM lokasi_parkir l
+					LEFT JOIN users p ON l.petugas_id = p.id
+					WHERE l.id = $1`
+
+	lokasiParkir.Petugas = &domain.User{}
+	err = repo.db.QueryRowContext(ctx, querySelect, lokasiParkir.ID).Scan(&lokasiParkir.ID, &lokasiParkir.NamaLokasi, &lokasiParkir.Alamat, &lokasiParkir.IsActive, &lokasiParkir.Petugas.ID, &lokasiParkir.Petugas.Name, &lokasiParkir.Petugas.Email)
+	if err != nil {
+		logrus.WithError(err).Error("repo.CreateLokasiParkir: failed to re-fetch lokasi parkir with joins")
 		return err
 	}
 

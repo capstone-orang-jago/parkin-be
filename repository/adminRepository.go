@@ -118,8 +118,8 @@ func (r *adminRepository) GetTransactionByID(ctx context.Context, id string) (*d
 	t := &domain.TransaksiParkir{
 		LokasiParkir: &domain.LokasiParkir{},
 		Pengguna:     &domain.User{},
+		Petugas:      &domain.User{},
 	}
-	petugas := &domain.User{}
 
 	var locID, locName, userID, userName, userEmail, petID, petName, petEmail sql.NullString
 
@@ -149,10 +149,9 @@ func (r *adminRepository) GetTransactionByID(ctx context.Context, id string) (*d
 		t.Pengguna.Email = userEmail.String
 	}
 	if petID.Valid {
-		petugas.ID = petID.String
-		petugas.Name = petName.String
-		petugas.Email = petEmail.String
-		t.LokasiParkir.Petugas = petugas
+		t.Petugas.ID = petID.String
+		t.Petugas.Name = petName.String
+		t.Petugas.Email = petEmail.String
 	}
 
 	return t, nil

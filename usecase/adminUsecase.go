@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/capstone-orang-jago/parkin-be/domain"
@@ -80,14 +79,17 @@ func (u *adminUsecase) GetTransactionDetail(ctx context.Context, id string) (*dt
 	if tx.Pengguna != nil {
 		res.Pengguna = &dto.UserResponseDTO{ID: tx.Pengguna.ID, Name: tx.Pengguna.Name, Email: tx.Pengguna.Email}
 	}
+	if tx.Petugas != nil {
+		res.Petugas = &dto.UserResponseDTO{ID: tx.Petugas.ID, Name: tx.Petugas.Name, Email: tx.Petugas.Email}
+	}
 	if tx.LokasiParkir != nil {
 		res.Lokasi = &dto.LokasiParkirResponseDTO{ID: tx.LokasiParkir.ID, NamaLokasi: tx.LokasiParkir.NamaLokasi}
 	}
 
-	if res.Pengguna != nil && len(res.Pengguna.ID) > 12 {
-		rawID := res.Pengguna.ID
-		res.Pengguna.ID = fmt.Sprintf("%s***%s", rawID[:5], rawID[len(rawID)-4:])
-	}
+	// if res.Pengguna != nil && len(res.Pengguna.ID) > 12 {
+	// 	rawID := res.Pengguna.ID
+	// 	res.Pengguna.ID = fmt.Sprintf("%s***%s", rawID[:5], rawID[len(rawID)-4:])
+	// }
 	return res, nil
 }
 

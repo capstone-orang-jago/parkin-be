@@ -163,7 +163,7 @@ func (usecase *authUsecase) VerifyRegister(ctx context.Context, req dto.VerifyOt
 
 	user, err := usecase.userRepo.GetUserByTelephone(ctx, telephone)
 	if err != nil {
-		logrus.WithError(err).Error("usecase.VerifyRegister: failed to get user by telephone")
+		logrus.WithError(err).Error("usecase.VerifyRegister: failed to get user")
 		return nil, errors.New("failed to get user by telephone")
 	}
 
@@ -174,13 +174,7 @@ func (usecase *authUsecase) VerifyRegister(ctx context.Context, req dto.VerifyOt
 	}
 	if !isValid {
 		logrus.WithField("telephone", telephone).Info("usecase.VerifyRegister: invalid OTP code")
-		return nil, err
-	}
-
-	user.IsVerified = true
-	if err := usecase.userRepo.UpdateUser(ctx, user, user.ID); err != nil {
-		logrus.WithError(err).Error("usecase.VerifyRegister: failed to update user verification status")
-		return nil, errors.New("failed to update user verification status")
+		return nil, errors.New("invalid OTP code")
 	}
 
 	refreshToken, err := helpers.GenerateRefreshToken()
@@ -188,7 +182,6 @@ func (usecase *authUsecase) VerifyRegister(ctx context.Context, req dto.VerifyOt
 		logrus.WithError(err).Error("usecase.Login: failed to generate refresh token")
 		return nil, errors.New("failed to generate refresh token")
 	}
-
 	hashedToken := helpers.HashToken(refreshToken)
 
 	accessToken, err := helpers.GenerateAccessToken(
@@ -203,15 +196,29 @@ func (usecase *authUsecase) VerifyRegister(ctx context.Context, req dto.VerifyOt
 		return nil, errors.New("failed to generate access token")
 	}
 
-	auth := &domain.Auth{
-		UserID:           user.ID,
-		RefreshTokenHash: hashedToken,
-		ExpiredAt:        time.Now().Add(time.Hour * 24 * 30),
-	}
+	err = usecase.transactor.WithTransaction(ctx, func(txCtx context.Context) error {
 
-	if err = usecase.authRepo.CreateRefreshToken(ctx, auth); err != nil {
-		logrus.WithError(err).Error("usecase.Login: failed to save refresh token to database")
-		return nil, errors.New("failed to save refresh token to database")
+		user.IsVerified = true
+		if err := usecase.userRepo.UpdateUser(txCtx, user, user.ID); err != nil {
+			logrus.WithError(err).Error("usecase.VerifyRegister: failed to update user verification")
+			return errors.New("failed to update user verification status")
+		}
+
+		auth := &domain.Auth{
+			UserID:           user.ID,
+			RefreshTokenHash: hashedToken,
+			ExpiredAt:        time.Now().Add(time.Hour * 24 * 30),
+		}
+		if err := usecase.authRepo.CreateRefreshToken(txCtx, auth); err != nil {
+			logrus.WithError(err).Error("usecase.Login: failed to save refresh token")
+			return errors.New("failed to save refresh token to database")
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	res := &dto.LoginResponseDTO{

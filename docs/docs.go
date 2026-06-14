@@ -1216,7 +1216,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/verify-register": {
+        "/auth/verify-otp": {
             "post": {
                 "consumes": [
                     "application/json"

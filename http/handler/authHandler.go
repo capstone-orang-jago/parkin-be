@@ -75,7 +75,7 @@ func (handler *authHandler) Register(c *gin.Context) {
 // @Failure 400 {object} domain.HttpResponse
 // @Failure 401 {object} domain.HttpResponse
 // @Failure 500 {object} domain.HttpResponse
-// @Router /auth/verify-register [post]
+// @Router /auth/verify-otp [post]
 func (handler *authHandler) VerifyRegister(c *gin.Context) {
 	var req dto.VerifyOtpCodeRequestDTO
 	if err := helpers.DecodeJSON(c, &req); err != nil {

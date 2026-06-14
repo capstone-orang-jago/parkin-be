@@ -52,7 +52,7 @@ func RegisterRoutes(application app.App) http.Handler {
 	{
 		auth.POST("/register", middlewares.RateLimitMiddleware(), application.AuthHandler.Register)
 		auth.POST("/verify-otp", middlewares.RateLimitMiddleware(), application.AuthHandler.VerifyRegister)
-		auth.POST("/send-otp", middlewares.RateLimitMiddleware(), application.OtpCodeHandler.ResendOtpCode)
+		auth.POST("/resend-otp", middlewares.RateLimitMiddleware(), application.OtpCodeHandler.ResendOtpCode)
 
 		auth.POST("/login", middlewares.RateLimitMiddleware(), application.AuthHandler.Login)
 		auth.POST("/refresh", middlewares.RateLimitMiddleware(), application.AuthHandler.RefreshToken)

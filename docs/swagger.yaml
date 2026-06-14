@@ -1191,7 +1191,7 @@ paths:
       summary: Resend OTP code to user's telephone
       tags:
       - auth
-  /auth/verify-register:
+  /auth/verify-otp:
     post:
       consumes:
       - application/json

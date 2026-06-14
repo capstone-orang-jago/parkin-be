@@ -24,6 +24,15 @@ func NewOtpCodeUsecase(otpCodeRepo domain.OtpCodeRepository, userRepo domain.Use
 }
 
 func (usecase *otpCodeUsecase) SendOtpCode(ctx context.Context, telephone string) error {
+	if telephone[0] == '0' {
+		telephone = "62" + telephone[1:]
+	} else if telephone[0] == '+' {
+		telephone = telephone[1:]
+	} else if telephone[0] == '8' {
+		telephone = "62" + telephone
+	} else if telephone[0] != '6' && telephone[0] != '8' {
+		return errors.New("invalid telephone number format")
+	}
 	user, err := usecase.userRepo.GetUserByTelephone(ctx, telephone)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.SendOtpCode: failed to get user by telephone")

@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/capstone-orang-jago/parkin-be/config"
@@ -51,6 +52,10 @@ func (usecase *authUsecase) Login(ctx context.Context, req dto.LoginRequestDTO) 
 		return nil, errors.New("invalid email or password")
 	}
 
+	if user.Role == "pengguna" && !user.IsVerified {
+		return nil, errors.New("account is not verified, please verify your OTP first")
+	}
+
 	refreshToken, err := helpers.GenerateRefreshToken()
 	if err != nil {
 		logrus.WithError(err).Error("usecase.Login: failed to generate refresh token")
@@ -97,15 +102,9 @@ func (usecase *authUsecase) Register(ctx context.Context, req dto.RegisterReques
 		return nil, errors.New("all fields are required")
 	}
 
-	telephone := req.Telephone
-	if telephone[0] == '0' {
-		telephone = "62" + telephone[1:]
-	} else if telephone[0] == '+' {
-		telephone = telephone[1:]
-	} else if telephone[0] == '8' {
-		telephone = "62" + telephone
-	} else if telephone[0] != '6' && telephone[0] != '8' {
-		return nil, errors.New("invalid telephone number format")
+	telephone, err := helpers.NormalizeTelephone(req.Telephone)
+	if err != nil {
+		return nil, err
 	}
 
 	existingUser, _ := usecase.userRepo.GetUserByTelephone(ctx, telephone)
@@ -150,21 +149,22 @@ func (usecase *authUsecase) Register(ctx context.Context, req dto.RegisterReques
 }
 
 func (usecase *authUsecase) VerifyRegister(ctx context.Context, req dto.VerifyOtpCodeRequestDTO) (*dto.LoginResponseDTO, error) {
-	telephone := req.Telephone
-	if telephone[0] == '0' {
-		telephone = "62" + telephone[1:]
-	} else if telephone[0] == '+' {
-		telephone = telephone[1:]
-	} else if telephone[0] == '8' {
-		telephone = "62" + telephone
-	} else if telephone[0] != '6' && telephone[0] != '8' {
-		return nil, errors.New("invalid telephone number format")
+	if strings.TrimSpace(req.OTPCode) == "" {
+		return nil, errors.New("otp code are required")
+	}
+
+	telephone, err := helpers.NormalizeTelephone(req.Telephone)
+	if err != nil {
+		return nil, err
 	}
 
 	user, err := usecase.userRepo.GetUserByTelephone(ctx, telephone)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.VerifyRegister: failed to get user")
 		return nil, errors.New("failed to get user by telephone")
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
 	}
 
 	isValid, err := usecase.otpCodeUsecase.VerifyOtpCode(ctx, telephone, req.OTPCode)
@@ -198,8 +198,7 @@ func (usecase *authUsecase) VerifyRegister(ctx context.Context, req dto.VerifyOt
 
 	err = usecase.transactor.WithTransaction(ctx, func(txCtx context.Context) error {
 
-		user.IsVerified = true
-		if err := usecase.userRepo.UpdateUser(txCtx, user, user.ID); err != nil {
+		if err := usecase.userRepo.UpdateUserVerification(txCtx, user.ID, true); err != nil {
 			logrus.WithError(err).Error("usecase.VerifyRegister: failed to update user verification")
 			return errors.New("failed to update user verification status")
 		}

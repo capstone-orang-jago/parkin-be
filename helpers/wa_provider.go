@@ -19,14 +19,14 @@ func NewWaService(client *whatsmeow.Client) domain.WaService {
 }
 
 func (w *waService) SendMessage(telephone string, message string) error {
-	formattedNumber := telephone
-	if telephone[0] == '0' {
-		formattedNumber = "62" + telephone[1:]
+	formattedNumber, err := NormalizeTelephone(telephone)
+	if err != nil {
+		return err
 	}
 
 	jid := types.NewJID(formattedNumber, types.DefaultUserServer)
 
-	_, err := w.client.SendMessage(context.Background(), jid, &waE2E.Message{
+	_, err = w.client.SendMessage(context.Background(), jid, &waE2E.Message{
 		Conversation: proto.String(message),
 	})
 

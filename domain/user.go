@@ -27,9 +27,11 @@ type (
 		CreateUser(ctx context.Context, user *User) error
 		GetAllUsers(ctx context.Context) ([]*User, error)
 		GetUserByID(ctx context.Context, id string) (*User, error)
+		GetUserByIDForUpdate(ctx context.Context, id string) (*User, error)
 		GetUserByEmail(ctx context.Context, email string) (*User, error)
 		GetUserByTelephone(ctx context.Context, telephone string) (*User, error)
 		UpdateUser(ctx context.Context, user *User, id string) error
+		UpdateUserVerification(ctx context.Context, id string, isVerified bool) error
 		DeleteUser(ctx context.Context, id string) error
 		GetUserSaldo(ctx context.Context, id string) (int64, error)
 		DeductUserSaldo(ctx context.Context, id string, amount int64) error

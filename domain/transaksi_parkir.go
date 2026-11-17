@@ -14,6 +14,7 @@ type TransaksiParkir struct {
 	PenggunaID     string
 	PetugasID      string
 	LokasiID       string
+	QRSessionID    string
 	JenisKendaraan string
 	Tarif          int64
 	SaldoSebelum   int64
@@ -40,7 +41,7 @@ type (
 
 	TransaksiParkirUsecase interface {
 		CreateTransaksiParkir(ctx context.Context, req *dto.TransaksiParkirRequestDTO, penggunaID string) (res *dto.TransaksiParkirResponseDTO, err error)
-		GetTransaksiParkirByID(ctx context.Context, id string) (*dto.TransaksiParkirResponseDTO, error)
+		GetTransaksiParkirByID(ctx context.Context, id, userID, role string) (*dto.TransaksiParkirResponseDTO, error)
 		GetAllTransaksiParkirByUserID(ctx context.Context, userID, role string, page, limit int, filter string) ([]*dto.TransaksiParkirResponseDTO, error)
 	}
 

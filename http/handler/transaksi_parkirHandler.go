@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"errors"
+
 	"github.com/capstone-orang-jago/parkin-be/domain"
 	"github.com/capstone-orang-jago/parkin-be/dto"
 	"github.com/capstone-orang-jago/parkin-be/helpers"
@@ -43,9 +45,22 @@ func (handler *transaksiParkirHandler) CreateTransaksiParkir(c *gin.Context) {
 	transaksiParkir, err := handler.transaksiParkirUsecase.CreateTransaksiParkir(c.Request.Context(), &req, userID)
 	if err != nil {
 		logrus.WithError(err).Error("handler.CreateTransaksiParkir: failed to create transaksi parkir")
+		code := 500
+		message := "failed to create transaksi parkir"
+		switch {
+		case errors.Is(err, helpers.ErrInvalidInput), errors.Is(err, helpers.ErrInsufficientBalance):
+			code = 400
+			message = err.Error()
+		case errors.Is(err, helpers.ErrConflict):
+			code = 409
+			message = err.Error()
+		case errors.Is(err, helpers.ErrNotFound):
+			code = 404
+			message = err.Error()
+		}
 		helpers.Response(c, domain.HttpResponse{
-			Code:    500,
-			Message: "failed to create transaksi parkir",
+			Code:    code,
+			Message: message,
 		})
 		return
 	}
@@ -69,13 +84,30 @@ func (handler *transaksiParkirHandler) CreateTransaksiParkir(c *gin.Context) {
 // @Router /user/transactions/{id} [get]
 func (handler *transaksiParkirHandler) GetTransaksiParkirByID(c *gin.Context) {
 	id := c.Param("id")
+	userID := c.GetString("sub")
+	role := c.GetString("role")
 
-	transaksiParkir, err := handler.transaksiParkirUsecase.GetTransaksiParkirByID(c.Request.Context(), id)
+	transaksiParkir, err := handler.transaksiParkirUsecase.GetTransaksiParkirByID(c.Request.Context(), id, userID, role)
 	if err != nil {
 		logrus.WithError(err).Error("handler.GetTransaksiParkirByID: failed to get transaksi parkir by ID")
+		code := 500
+		switch {
+		case errors.Is(err, helpers.ErrForbidden):
+			code = 403
+		case errors.Is(err, helpers.ErrNotFound):
+			code = 404
+		}
 		helpers.Response(c, domain.HttpResponse{
-			Code:    500,
+			Code:    code,
 			Message: "failed to get transaksi parkir",
+		})
+		return
+	}
+
+	if transaksiParkir == nil {
+		helpers.Response(c, domain.HttpResponse{
+			Code:    404,
+			Message: "transaksi parkir not found",
 		})
 		return
 	}

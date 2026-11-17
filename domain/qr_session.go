@@ -16,6 +16,7 @@ type QRSession struct {
 	HMAC         string
 	ExpiredAt    time.Time
 	IsRevoked    bool
+	LastUsedAt   time.Time
 	LokasiParkir *LokasiParkir
 	Petugas      *User
 }
@@ -26,6 +27,8 @@ type (
 		GetActiveQRByPetugasID(ctx context.Context, petugasID string) (*QRSession, error)
 		RevokeQRSession(ctx context.Context, id string) error
 		GetQRSessionByPayload(ctx context.Context, payload string) (*QRSession, error)
+		GetQRSessionByPayloadForUpdate(ctx context.Context, payload string) (*QRSession, error)
+		MarkQRSessionUsed(ctx context.Context, id string) error
 	}
 
 	QRSessionUsecase interface {

@@ -20,13 +20,13 @@ func NewTransaksiParkirRepository(db *sql.DB) *transaksiParkirRepository {
 
 func (repo *transaksiParkirRepository) CreateTransaksiParkir(ctx context.Context, transaksi *domain.TransaksiParkir) error {
 	queryInsert := `
-        INSERT INTO transaksi_parkir (kode_transaksi, pengguna_id, petugas_id, lokasi_id, jenis_kendaraan, tarif, saldo_sebelum, saldo_sesudah, status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        INSERT INTO transaksi_parkir (kode_transaksi, pengguna_id, petugas_id, lokasi_id, qr_session_id, jenis_kendaraan, tarif, saldo_sebelum, saldo_sesudah, status)
+        VALUES ($1, $2, $3, $4, NULLIF($5, '')::uuid, $6, $7, $8, $9, $10)
         RETURNING id
     `
 
 	exec := helpers.GetExecutor(ctx, repo.db)
-	err := exec.QueryRowContext(ctx, queryInsert, transaksi.KodeTransaksi, transaksi.PenggunaID, transaksi.PetugasID, transaksi.LokasiID, transaksi.JenisKendaraan, transaksi.Tarif, transaksi.SaldoSebelum, transaksi.SaldoSesudah, transaksi.Status).Scan(&transaksi.ID)
+	err := exec.QueryRowContext(ctx, queryInsert, transaksi.KodeTransaksi, transaksi.PenggunaID, transaksi.PetugasID, transaksi.LokasiID, transaksi.QRSessionID, transaksi.JenisKendaraan, transaksi.Tarif, transaksi.SaldoSebelum, transaksi.SaldoSesudah, transaksi.Status).Scan(&transaksi.ID)
 	if err != nil {
 		logrus.WithError(err).Error("repo.CreateTransaksiParkir: failed to create transaksi parkir")
 		return err

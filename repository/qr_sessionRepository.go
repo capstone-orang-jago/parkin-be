@@ -59,9 +59,9 @@ func (repo *qrSessionRepository) GetActiveQRByPetugasID(ctx context.Context, pet
     FROM qr_sessions q
     LEFT JOIN users p on q.petugas_id = p.id
     LEFT JOIN lokasi_parkir l on q.lokasi_id = l.id
-    WHERE q.petugas_id = $1 
-    AND q.is_revoked = false 
-    AND q.expired_at > NOW()  
+    WHERE q.petugas_id = $1
+    AND q.is_revoked = false
+    AND q.expired_at > NOW()
     FOR UPDATE OF q`
 
 	exec := helpers.GetExecutor(ctx, repo.db)
@@ -91,15 +91,57 @@ func (repo *qrSessionRepository) RevokeQRSession(ctx context.Context, id string)
 	return err
 }
 
+func (repo *qrSessionRepository) GetQRSessionByPayloadForUpdate(ctx context.Context, payload string) (*domain.QRSession, error) {
+	query := `SELECT q.id, q.payload, q.hmac, q.expired_at, q.is_revoked, q.last_used_at,
+	p.id, p.name, p.email,
+	l.id, l.nama_lokasi, l.alamat, l.is_active
+	FROM qr_sessions q
+	LEFT JOIN users p ON q.petugas_id = p.id
+	LEFT JOIN lokasi_parkir l ON q.lokasi_id = l.id
+	WHERE q.payload = $1
+	AND q.is_revoked = false
+	AND q.expired_at > NOW()
+	FOR UPDATE OF q`
+	exec := helpers.GetExecutor(ctx, repo.db)
+	row := exec.QueryRowContext(ctx, query, payload)
+	qrSession := &domain.QRSession{
+		Petugas:      &domain.User{},
+		LokasiParkir: &domain.LokasiParkir{},
+	}
+	var lastUsedAt sql.NullTime
+	err := row.Scan(&qrSession.ID, &qrSession.Payload, &qrSession.HMAC, &qrSession.ExpiredAt, &qrSession.IsRevoked, &lastUsedAt, &qrSession.Petugas.ID, &qrSession.Petugas.Name, &qrSession.Petugas.Email, &qrSession.LokasiParkir.ID, &qrSession.LokasiParkir.NamaLokasi, &qrSession.LokasiParkir.Alamat, &qrSession.LokasiParkir.IsActive)
+	if err == sql.ErrNoRows {
+		logrus.WithError(err).Info("repo.GetQRSessionByPayloadForUpdate: no QR session found for payload")
+		return nil, nil
+	} else if err != nil {
+		logrus.WithError(err).Error("repo.GetQRSessionByPayloadForUpdate: failed to get QR session by payload")
+		return nil, err
+	}
+	if lastUsedAt.Valid {
+		qrSession.LastUsedAt = lastUsedAt.Time
+	}
+	return qrSession, nil
+}
+
+func (repo *qrSessionRepository) MarkQRSessionUsed(ctx context.Context, id string) error {
+	query := `UPDATE qr_sessions SET last_used_at = NOW() WHERE id = $1`
+	exec := helpers.GetExecutor(ctx, repo.db)
+	_, err := exec.ExecContext(ctx, query, id)
+	if err != nil {
+		logrus.WithError(err).Error("repo.MarkQRSessionUsed: failed to mark QR session as used")
+	}
+	return err
+}
+
 func (repo *qrSessionRepository) GetQRSessionByPayload(ctx context.Context, payload string) (*domain.QRSession, error) {
 	query := `SELECT q.id, q.payload, q.hmac, q.expired_at, q.is_revoked,
 	p.id, p.name, p.email,
 	l.id, l.nama_lokasi, l.alamat, l.is_active
-	FROM qr_sessions q 
+	FROM qr_sessions q
 	LEFT JOIN users p ON q.petugas_id = p.id
 	LEFT JOIN lokasi_parkir l ON q.lokasi_id = l.id
-	WHERE q.payload = $1 
-	AND q.is_revoked = false 
+	WHERE q.payload = $1
+	AND q.is_revoked = false
 	AND q.expired_at > NOW()`
 	exec := helpers.GetExecutor(ctx, repo.db)
 	row := exec.QueryRowContext(ctx, query, payload)

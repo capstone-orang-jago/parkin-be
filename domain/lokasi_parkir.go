@@ -24,6 +24,7 @@ type (
 		CreateLokasiParkir(ctx context.Context, lokasiParkir *LokasiParkir) error
 		GetAllLokasiParkir(ctx context.Context) ([]*LokasiParkir, error)
 		GetLokasiParkirByID(ctx context.Context, id string) (*LokasiParkir, error)
+		GetLokasiParkirByIDForUpdate(ctx context.Context, id string) (*LokasiParkir, error)
 		GetLokasiParkirByPetugasID(ctx context.Context, petugasID string) (*LokasiParkir, error)
 		UpdateLokasiParkir(ctx context.Context, lokasiParkir *LokasiParkir, id string) error
 		DeleteLokasiParkir(ctx context.Context, id string) error

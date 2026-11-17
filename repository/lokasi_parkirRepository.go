@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/capstone-orang-jago/parkin-be/domain"
+	"github.com/capstone-orang-jago/parkin-be/helpers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -83,7 +84,8 @@ func (repo *lokasiParkirRepository) GetLokasiParkirByID(ctx context.Context, id 
 	lokasiParkir = &domain.LokasiParkir{
 		Petugas: &domain.User{},
 	}
-	err = repo.db.QueryRowContext(ctx, query, id).Scan(&lokasiParkir.ID, &lokasiParkir.NamaLokasi, &lokasiParkir.Alamat, &lokasiParkir.IsActive, &lokasiParkir.Petugas.ID, &lokasiParkir.Petugas.Name, &lokasiParkir.Petugas.Email, &lokasiParkir.Petugas.Role)
+	exec := helpers.GetExecutor(ctx, repo.db)
+	err = exec.QueryRowContext(ctx, query, id).Scan(&lokasiParkir.ID, &lokasiParkir.NamaLokasi, &lokasiParkir.Alamat, &lokasiParkir.IsActive, &lokasiParkir.Petugas.ID, &lokasiParkir.Petugas.Name, &lokasiParkir.Petugas.Email, &lokasiParkir.Petugas.Role)
 	if err == sql.ErrNoRows {
 		logrus.WithError(err).Info("repo.GetLokasiParkirByID: no lokasi parkir found for ID")
 		return nil, nil
@@ -91,6 +93,37 @@ func (repo *lokasiParkirRepository) GetLokasiParkirByID(ctx context.Context, id 
 		logrus.WithError(err).Error("repo.GetLokasiParkirByID: failed to get lokasi parkir by ID")
 		return nil, err
 	}
+
+	return lokasiParkir, err
+}
+
+func (repo *lokasiParkirRepository) GetLokasiParkirByIDForUpdate(ctx context.Context, id string) (lokasiParkir *domain.LokasiParkir, err error) {
+	query := `SELECT l.id, l.nama_lokasi, l.alamat, l.is_active,
+	p.id, p.name, p.email, p.role
+	FROM lokasi_parkir l
+	LEFT JOIN users p ON l.petugas_id = p.id
+	WHERE l.id = $1
+	FOR UPDATE OF l`
+
+	lokasiParkir = &domain.LokasiParkir{
+		Petugas: &domain.User{},
+	}
+	var petugasID, petugasName, petugasEmail, petugasRole sql.NullString
+
+	exec := helpers.GetExecutor(ctx, repo.db)
+	err = exec.QueryRowContext(ctx, query, id).Scan(&lokasiParkir.ID, &lokasiParkir.NamaLokasi, &lokasiParkir.Alamat, &lokasiParkir.IsActive, &petugasID, &petugasName, &petugasEmail, &petugasRole)
+	if err == sql.ErrNoRows {
+		logrus.WithError(err).Info("repo.GetLokasiParkirByIDForUpdate: no lokasi parkir found for ID")
+		return nil, nil
+	} else if err != nil {
+		logrus.WithError(err).Error("repo.GetLokasiParkirByIDForUpdate: failed to get lokasi parkir by ID")
+		return nil, err
+	}
+
+	lokasiParkir.Petugas.ID = petugasID.String
+	lokasiParkir.Petugas.Name = petugasName.String
+	lokasiParkir.Petugas.Email = petugasEmail.String
+	lokasiParkir.Petugas.Role = petugasRole.String
 
 	return lokasiParkir, err
 }

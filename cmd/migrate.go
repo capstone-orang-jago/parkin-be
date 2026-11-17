@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -12,18 +14,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const migrationsDir = "database/migrations"
+
 var migrateCreateCmd = &cobra.Command{
 	Use:   "migrate:create [name]",
 	Short: "Create a new migration file",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		dirName := "database/migrations"
 		name := strings.ToLower(args[0])
 		timestamp := time.Now().Format("20060102150405")
-		filename := fmt.Sprintf("%s/%s_%s.sql", dirName, timestamp, name)
+		filename := fmt.Sprintf("%s/%s_%s.sql", migrationsDir, timestamp, name)
 		content := "-- +migrate Up\n\n-- +migrate Down\n"
 
-		if err := os.MkdirAll(dirName, os.ModePerm); err != nil {
+		if err := os.MkdirAll(migrationsDir, os.ModePerm); err != nil {
 			fmt.Println("Error creating migrations folder:", err)
 			return
 		}
@@ -39,71 +42,22 @@ var migrateCreateCmd = &cobra.Command{
 
 var migrateUpCmd = &cobra.Command{
 	Use:   "migrate:up",
-	Short: "Apply all up migrations",
+	Short: "Apply all pending up migrations",
 	Run: func(cmd *cobra.Command, args []string) {
-		conn, err := config.NewDB()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		if err := runMigrateUp(); err != nil {
+			fmt.Fprintf(os.Stderr, "Migration failed: %v\n", err)
 			os.Exit(1)
-		}
-		defer conn.Close()
-
-		files, err := filepath.Glob("database/migrations/*.sql")
-		if err != nil {
-			fmt.Println("Error getting migration files:", err)
-			return
-		}
-
-		for _, file := range files {
-			content, _ := os.ReadFile(file)
-			parts := strings.Split(string(content), "-- +migrate Down")
-			upSQL := strings.Replace(parts[0], "-- +migrate Up", "", 1)
-
-			if strings.TrimSpace(upSQL) == "" {
-				continue
-			}
-
-			if _, err := conn.ExecContext(context.Background(), upSQL); err != nil {
-				fmt.Println("Failed to run migration:", file, err)
-				return
-			}
-
-			fmt.Println("Migrated:", file)
 		}
 	},
 }
 
 var migrateDownCmd = &cobra.Command{
 	Use:   "migrate:down",
-	Short: "Revert all down migrations",
+	Short: "Revert all applied down migrations",
 	Run: func(cmd *cobra.Command, args []string) {
-		conn, err := config.NewDB()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		if err := runMigrateDown(); err != nil {
+			fmt.Fprintf(os.Stderr, "Rollback failed: %v\n", err)
 			os.Exit(1)
-		}
-		defer conn.Close()
-
-		files, _ := filepath.Glob("database/migrations/*.sql")
-		for i := len(files) - 1; i >= 0; i-- {
-			file := files[i]
-			content, _ := os.ReadFile(file)
-			parts := strings.Split(string(content), "-- +migrate Down")
-			if len(parts) < 2 {
-				continue
-			}
-			downSQL := parts[1]
-
-			if strings.TrimSpace(downSQL) == "" {
-				continue
-			}
-
-			if _, err := conn.ExecContext(context.Background(), downSQL); err != nil {
-				fmt.Println("Failed to rollback migration:", file, err)
-				return
-			}
-
-			fmt.Println("Rolled back:", file)
 		}
 	},
 }
@@ -112,4 +66,179 @@ func init() {
 	rootCmd.AddCommand(migrateCreateCmd)
 	rootCmd.AddCommand(migrateUpCmd)
 	rootCmd.AddCommand(migrateDownCmd)
+}
+
+func runMigrateUp() error {
+	conn, err := config.NewDB()
+	if err != nil {
+		return fmt.Errorf("unable to connect to database: %w", err)
+	}
+	defer conn.Close()
+
+	ctx := context.Background()
+	if err := ensureMigrationsTable(ctx, conn); err != nil {
+		return err
+	}
+
+	applied, err := appliedVersions(ctx, conn)
+	if err != nil {
+		return err
+	}
+
+	files, err := filepath.Glob(filepath.Join(migrationsDir, "*.sql"))
+	if err != nil {
+		return fmt.Errorf("error getting migration files: %w", err)
+	}
+	sort.Strings(files)
+
+	for _, file := range files {
+		version := migrationVersion(file)
+		if applied[version] {
+			continue
+		}
+
+		content, err := os.ReadFile(file)
+		if err != nil {
+			return fmt.Errorf("failed to read migration %s: %w", file, err)
+		}
+		upSQL := upSection(string(content))
+		if strings.TrimSpace(upSQL) == "" {
+			continue
+		}
+
+		tx, err := conn.BeginTx(ctx, nil)
+		if err != nil {
+			return fmt.Errorf("failed to start transaction for %s: %w", file, err)
+		}
+
+		if _, err := tx.ExecContext(ctx, upSQL); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to run migration %s: %w", file, err)
+		}
+		if _, err := tx.ExecContext(ctx, `INSERT INTO schema_migrations (version) VALUES ($1)`, version); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to record migration %s: %w", file, err)
+		}
+		if err := tx.Commit(); err != nil {
+			return fmt.Errorf("failed to commit migration %s: %w", file, err)
+		}
+
+		fmt.Println("Migrated:", file)
+	}
+
+	return nil
+}
+
+func runMigrateDown() error {
+	conn, err := config.NewDB()
+	if err != nil {
+		return fmt.Errorf("unable to connect to database: %w", err)
+	}
+	defer conn.Close()
+
+	ctx := context.Background()
+	if err := ensureMigrationsTable(ctx, conn); err != nil {
+		return err
+	}
+
+	applied, err := appliedVersions(ctx, conn)
+	if err != nil {
+		return err
+	}
+
+	files, err := filepath.Glob(filepath.Join(migrationsDir, "*.sql"))
+	if err != nil {
+		return fmt.Errorf("error getting migration files: %w", err)
+	}
+	sort.Strings(files)
+
+	for i := len(files) - 1; i >= 0; i-- {
+		file := files[i]
+		version := migrationVersion(file)
+		if !applied[version] {
+			continue
+		}
+
+		content, err := os.ReadFile(file)
+		if err != nil {
+			return fmt.Errorf("failed to read migration %s: %w", file, err)
+		}
+		downSQL := downSection(string(content))
+		if strings.TrimSpace(downSQL) == "" {
+			continue
+		}
+
+		tx, err := conn.BeginTx(ctx, nil)
+		if err != nil {
+			return fmt.Errorf("failed to start transaction for %s: %w", file, err)
+		}
+
+		if _, err := tx.ExecContext(ctx, downSQL); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to rollback migration %s: %w", file, err)
+		}
+		if _, err := tx.ExecContext(ctx, `DELETE FROM schema_migrations WHERE version = $1`, version); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to remove migration record %s: %w", file, err)
+		}
+		if err := tx.Commit(); err != nil {
+			return fmt.Errorf("failed to commit rollback %s: %w", file, err)
+		}
+
+		fmt.Println("Rolled back:", file)
+	}
+
+	return nil
+}
+
+func ensureMigrationsTable(ctx context.Context, conn *sql.DB) error {
+	query := `
+		CREATE TABLE IF NOT EXISTS schema_migrations (
+			version    TEXT PRIMARY KEY,
+			applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+		)
+	`
+	if _, err := conn.ExecContext(ctx, query); err != nil {
+		return fmt.Errorf("failed to create schema_migrations table: %w", err)
+	}
+	return nil
+}
+
+func appliedVersions(ctx context.Context, conn *sql.DB) (map[string]bool, error) {
+	rows, err := conn.QueryContext(ctx, `SELECT version FROM schema_migrations`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read applied migrations: %w", err)
+	}
+	defer rows.Close()
+
+	applied := make(map[string]bool)
+	for rows.Next() {
+		var version string
+		if err := rows.Scan(&version); err != nil {
+			return nil, fmt.Errorf("failed to scan applied migration: %w", err)
+		}
+		applied[version] = true
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to iterate applied migrations: %w", err)
+	}
+
+	return applied, nil
+}
+
+func migrationVersion(file string) string {
+	return strings.TrimSuffix(filepath.Base(file), ".sql")
+}
+
+func upSection(content string) string {
+	parts := strings.SplitN(content, "-- +migrate Down", 2)
+	return strings.Replace(parts[0], "-- +migrate Up", "", 1)
+}
+
+func downSection(content string) string {
+	parts := strings.SplitN(content, "-- +migrate Down", 2)
+	if len(parts) < 2 {
+		return ""
+	}
+	return parts[1]
 }

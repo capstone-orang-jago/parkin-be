@@ -66,7 +66,8 @@ func InitApp(cfg *config.Config, waService domain.WaService) App {
 	transaksiParkirUsecase := usecase.NewTransaksiParkirUsecase(transaksiParkirRepo, userRepo, qrSessionRepo, lokasiParkirRepo, transactor)
 	transaksiParkirHandler := handler.NewTransaksiParkirHandler(transaksiParkirUsecase)
 
-	midtransUsecase := usecase.NewMidtransUsecase(userRepo, topUpRepo, transactor, config.AppConfig.MIDTRANS_SERVER_KEY)
+	midtransStatusProvider := usecase.NewMidtransStatusProvider(config.AppConfig.MIDTRANS_SERVER_KEY)
+	midtransUsecase := usecase.NewMidtransUsecase(userRepo, topUpRepo, transactor, config.AppConfig.MIDTRANS_SERVER_KEY, midtransStatusProvider)
 	midtransHandler := handler.NewMidtransHandler(midtransUsecase)
 
 	dashBoardRepo := repository.NewDashboardRepository(db)

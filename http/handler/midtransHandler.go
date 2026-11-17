@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/capstone-orang-jago/parkin-be/domain"
@@ -117,11 +118,19 @@ func (handler *midtransHandler) GetTopUpStatus(c *gin.Context) {
 		return
 	}
 
-	topUpData, err := handler.midtransUsecase.GetTopUpStatus(c.Request.Context(), orderID)
+	userID := c.GetString("sub")
+
+	topUpData, err := handler.midtransUsecase.GetTopUpStatus(c.Request.Context(), orderID, userID)
 	if err != nil {
+		code := http.StatusInternalServerError
+		message := "failed to fetch top-up status"
+		if errors.Is(err, helpers.ErrForbidden) {
+			code = http.StatusForbidden
+			message = "you are not allowed to access this top-up"
+		}
 		helpers.Response(c, domain.HttpResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "failed to fetch top-up status: " + err.Error(),
+			Code:    code,
+			Message: message,
 		})
 		return
 	}

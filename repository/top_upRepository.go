@@ -21,7 +21,7 @@ func NewTopUpRepository(db *sql.DB) *topUpRepository {
 }
 
 func (repo *topUpRepository) CreateTopUp(ctx context.Context, topUp *domain.TopUp) error {
-	query := `INSERT INTO topup_saldo (pengguna_id, nominal, metode_pembayaran, midtrans_order_id, midtrans_transaction_id, status, snap_token, snap_redirect_url, raw_callback, paid_at, created_at, updated_at) 
+	query := `INSERT INTO topup_saldo (pengguna_id, nominal, metode_pembayaran, midtrans_order_id, midtrans_transaction_id, status, snap_token, snap_redirect_url, raw_callback, paid_at, created_at, updated_at)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW()) RETURNING id`
 
 	exec := helpers.GetExecutor(ctx, repo.db)
@@ -46,12 +46,31 @@ func (repo *topUpRepository) CreateTopUp(ctx context.Context, topUp *domain.TopU
 func (repo *topUpRepository) GetTopUpByMidtransOrderID(ctx context.Context, midtransOrderID string) (*domain.TopUp, error) {
 	query := `SELECT tu.id, tu.nominal, tu.metode_pembayaran, tu.midtrans_order_id, tu.midtrans_transaction_id, tu.status, tu.snap_token, tu.snap_redirect_url, tu.raw_callback, tu.paid_at,
 	u.id, u.name, u.email, u.saldo
-	FROM topup_saldo tu 
+	FROM topup_saldo tu
 	LEFT JOIN users u ON tu.pengguna_id = u.id
 	WHERE tu.midtrans_order_id = $1`
 
 	exec := helpers.GetExecutor(ctx, repo.db)
 	row := exec.QueryRowContext(ctx, query, midtransOrderID)
+
+	return scanTopUp(row)
+}
+
+func (repo *topUpRepository) GetTopUpByMidtransOrderIDForUpdate(ctx context.Context, midtransOrderID string) (*domain.TopUp, error) {
+	query := `SELECT tu.id, tu.nominal, tu.metode_pembayaran, tu.midtrans_order_id, tu.midtrans_transaction_id, tu.status, tu.snap_token, tu.snap_redirect_url, tu.raw_callback, tu.paid_at,
+	u.id, u.name, u.email, u.saldo
+	FROM topup_saldo tu
+	LEFT JOIN users u ON tu.pengguna_id = u.id
+	WHERE tu.midtrans_order_id = $1
+	FOR UPDATE OF tu`
+
+	exec := helpers.GetExecutor(ctx, repo.db)
+	row := exec.QueryRowContext(ctx, query, midtransOrderID)
+
+	return scanTopUp(row)
+}
+
+func scanTopUp(row *sql.Row) (*domain.TopUp, error) {
 
 	topUp := &domain.TopUp{}
 	topUp.User = &domain.User{}

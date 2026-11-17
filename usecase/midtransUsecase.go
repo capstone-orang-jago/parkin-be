@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha512"
+	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"net/http"
 	"time"
 
@@ -23,14 +25,16 @@ type midtransUsecase struct {
 	topUpRepo         domain.TopUpRepository
 	transactor        helpers.Transactor
 	midtransServerKey string
+	statusProvider    MidtransStatusProvider
 }
 
-func NewMidtransUsecase(userRepo domain.UserRepository, topUpRepo domain.TopUpRepository, transactor helpers.Transactor, midTransServerKey string) domain.MidtransUsecase {
+func NewMidtransUsecase(userRepo domain.UserRepository, topUpRepo domain.TopUpRepository, transactor helpers.Transactor, midTransServerKey string, statusProvider MidtransStatusProvider) domain.MidtransUsecase {
 	return &midtransUsecase{
 		userRepo:          userRepo,
 		topUpRepo:         topUpRepo,
 		transactor:        transactor,
 		midtransServerKey: midTransServerKey,
+		statusProvider:    statusProvider,
 	}
 }
 
@@ -113,18 +117,45 @@ func (usecase *midtransUsecase) InitiateTopUp(ctx context.Context, userID string
 }
 
 func (usecase *midtransUsecase) TopUpSaldo(ctx context.Context, cb dto.MidtransCallbackDTO) (bool, error) {
+	if cb.OrderID == "" {
+		return false, errors.New("order id is required")
+	}
+
 	sha := sha512.New()
 	payloadSignature := cb.OrderID + cb.StatusCode + cb.GrossAmount + usecase.midtransServerKey
 	sha.Write([]byte(payloadSignature))
 	expectedSignature := hex.EncodeToString(sha.Sum(nil))
 
-	if cb.SignatureKey != expectedSignature {
+	if subtle.ConstantTimeCompare([]byte(cb.SignatureKey), []byte(expectedSignature)) != 1 {
 		logrus.Error("usecase.TopUpSaldo: alert! invalid midtrans signature key detected")
 		return false, errors.New("invalid signature key")
 	}
-	err := usecase.transactor.WithTransaction(ctx, func(txCtx context.Context) error {
 
-		topUp, err := usecase.topUpRepo.GetTopUpByMidtransOrderID(txCtx, cb.OrderID)
+	status, err := usecase.statusProvider.GetTransactionStatus(ctx, cb.OrderID)
+	if err != nil {
+		logrus.WithError(err).Error("usecase.TopUpSaldo: failed to verify transaction status with midtrans")
+		return false, errors.New("failed to verify transaction status with midtrans")
+	}
+	if status == nil {
+		return false, errors.New("midtrans transaction status not found")
+	}
+	if status.OrderID != cb.OrderID {
+		return false, errors.New("order id does not match midtrans transaction")
+	}
+	if status.StatusCode != cb.StatusCode {
+		return false, errors.New("status code does not match midtrans transaction")
+	}
+	if status.TransactionID != cb.TransactionID {
+		return false, errors.New("transaction id does not match midtrans transaction")
+	}
+
+	newStatus, recognised := mapMidtransStatus(status.TransactionStatus, status.FraudStatus)
+	if !recognised {
+		return false, fmt.Errorf("unrecognised midtrans transaction status: %s", status.TransactionStatus)
+	}
+
+	err = usecase.transactor.WithTransaction(ctx, func(txCtx context.Context) error {
+		topUp, err := usecase.topUpRepo.GetTopUpByMidtransOrderIDForUpdate(txCtx, cb.OrderID)
 		if err != nil {
 			return err
 		}
@@ -132,53 +163,56 @@ func (usecase *midtransUsecase) TopUpSaldo(ctx context.Context, cb dto.MidtransC
 			return errors.New("top-up record not found")
 		}
 
+		grossAmount, err := parseGrossAmount(status.GrossAmount)
+		if err != nil {
+			return errors.New("invalid gross amount from midtrans")
+		}
+		if grossAmount != topUp.Nominal {
+			return errors.New("gross amount does not match top-up nominal")
+		}
+		if topUp.MidtransTransactionID != "" && topUp.MidtransTransactionID != topUp.MidtransOrderID && topUp.MidtransTransactionID != status.TransactionID {
+			return errors.New("top-up transaction id does not match midtrans transaction")
+		}
+
 		if topUp.Status == "sukses" {
 			logrus.Info("usecase.TopUpSaldo: transaction already processed previously")
 			return nil
 		}
-
-		user := topUp.User
-		if user == nil || user.ID == "" {
-			return errors.New("user owner of transaction not found")
+		if topUp.Status != "pending" {
+			logrus.WithFields(logrus.Fields{
+				"order_id":        topUp.MidtransOrderID,
+				"stored_status":   topUp.Status,
+				"midtrans_status": status.TransactionStatus,
+			}).Info("usecase.TopUpSaldo: ignoring final status change for already finalized top-up")
+			return nil
 		}
 
 		rawCallback, _ := json.Marshal(cb)
 		topUp.RawCallBack = rawCallback
-		topUp.MidtransTransactionID = cb.TransactionID
+		topUp.MidtransTransactionID = status.TransactionID
+		topUp.Status = newStatus
 
-		switch cb.TransactionStatus {
-		case "settlement", "capture":
-			topUp.Status = "sukses"
+		if newStatus == "sukses" {
 			topUp.PaidAt = time.Now()
 
-			err = usecase.userRepo.AddUserSaldo(txCtx, user.ID, topUp.Nominal)
-			if err != nil {
+			user := topUp.User
+			if user == nil || user.ID == "" {
+				return errors.New("user owner of transaction not found")
+			}
+
+			if err := usecase.userRepo.AddUserSaldo(txCtx, user.ID, topUp.Nominal); err != nil {
 				logrus.WithError(err).Error("usecase.TopUpSaldo: failed to add user saldo")
 				return err
 			}
-
-		case "expire":
-			topUp.Status = "expired"
-			logrus.Infof("usecase.TopUpSaldo: transaction expired")
-
-		case "deny", "cancel":
-			topUp.Status = "gagal"
-			logrus.Infof("usecase.TopUpSaldo: transaction failed or canceled")
-
-		case "pending":
-			topUp.Status = "pending"
-			logrus.Infof("usecase.TopUpSaldo: transaction is still pending")
 		}
 
-		err = usecase.topUpRepo.UpdateTopUp(txCtx, topUp)
-		if err != nil {
+		if err := usecase.topUpRepo.UpdateTopUp(txCtx, topUp); err != nil {
 			logrus.WithError(err).Error("usecase.TopUpSaldo: failed to update top-up record")
 			return err
 		}
 
 		return nil
 	})
-
 	if err != nil {
 		logrus.WithError(err).Error("usecase.TopUpSaldo: database transaction failed")
 		return false, err
@@ -187,7 +221,7 @@ func (usecase *midtransUsecase) TopUpSaldo(ctx context.Context, cb dto.MidtransC
 	return true, nil
 }
 
-func (usecase *midtransUsecase) GetTopUpStatus(ctx context.Context, orderID string) (*dto.TopUpResponseDTO, error) {
+func (usecase *midtransUsecase) GetTopUpStatus(ctx context.Context, orderID, userID string) (*dto.TopUpResponseDTO, error) {
 	topUp, err := usecase.topUpRepo.GetTopUpByMidtransOrderID(ctx, orderID)
 	if err != nil {
 		logrus.WithError(err).Error("usecase.GetTopUpStatus: failed to get top-up record")
@@ -196,6 +230,9 @@ func (usecase *midtransUsecase) GetTopUpStatus(ctx context.Context, orderID stri
 	if topUp == nil {
 		logrus.Info("usecase.GetTopUpStatus: top-up record not found for order ID: ", orderID)
 		return nil, nil
+	}
+	if topUp.User == nil || topUp.User.ID != userID {
+		return nil, helpers.ErrForbidden
 	}
 
 	response := &dto.TopUpResponseDTO{
@@ -213,9 +250,42 @@ func (usecase *midtransUsecase) GetTopUpStatus(ctx context.Context, orderID stri
 		Status:                topUp.Status,
 		SnapToken:             topUp.SnapToken,
 		SnapRedirectURL:       topUp.SnapRedirectURL,
-		RawCallBack:           string(topUp.RawCallBack),
 		PaidAt:                topUp.PaidAt,
 	}
 
 	return response, nil
+}
+
+func mapMidtransStatus(transactionStatus, fraudStatus string) (string, bool) {
+	switch transactionStatus {
+	case "settlement":
+		return "sukses", true
+	case "capture":
+		if fraudStatus == "challenge" {
+			return "pending", true
+		}
+		return "sukses", true
+	case "expire":
+		return "expired", true
+	case "deny", "cancel":
+		return "gagal", true
+	case "pending":
+		return "pending", true
+	default:
+		return "", false
+	}
+}
+
+func parseGrossAmount(amount string) (int64, error) {
+	value, ok := new(big.Rat).SetString(amount)
+	if !ok {
+		return 0, errors.New("invalid gross amount")
+	}
+	if !value.IsInt() {
+		return 0, errors.New("gross amount must be a whole number")
+	}
+	if !value.Num().IsInt64() {
+		return 0, errors.New("gross amount is out of range")
+	}
+	return value.Num().Int64(), nil
 }

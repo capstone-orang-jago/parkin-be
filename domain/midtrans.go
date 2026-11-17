@@ -11,7 +11,7 @@ type (
 	MidtransUsecase interface {
 		InitiateTopUp(ctx context.Context, userID string, req dto.TopUpRequestDTO) (*dto.TopUpResponseDTO, error)
 		TopUpSaldo(ctx context.Context, cb dto.MidtransCallbackDTO) (bool, error)
-		GetTopUpStatus(ctx context.Context, midtransOrderID string) (*dto.TopUpResponseDTO, error)
+		GetTopUpStatus(ctx context.Context, midtransOrderID, userID string) (*dto.TopUpResponseDTO, error)
 	}
 
 	MidtransHandler interface {

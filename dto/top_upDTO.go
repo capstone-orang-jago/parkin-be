@@ -19,6 +19,5 @@ type TopUpResponseDTO struct {
 	Status                string
 	SnapToken             string
 	SnapRedirectURL       string
-	RawCallBack           string
 	PaidAt                time.Time
 }

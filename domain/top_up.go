@@ -27,6 +27,7 @@ type (
 	TopUpRepository interface {
 		CreateTopUp(ctx context.Context, topUp *TopUp) error
 		GetTopUpByMidtransOrderID(ctx context.Context, midtransOrderID string) (*TopUp, error)
+		GetTopUpByMidtransOrderIDForUpdate(ctx context.Context, midtransOrderID string) (*TopUp, error)
 		UpdateTopUp(ctx context.Context, topUp *TopUp) error
 	}
 )

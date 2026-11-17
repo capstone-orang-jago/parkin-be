@@ -3,7 +3,7 @@
 # ── Stage 1: build ──────────────────────────────────────────────
 # Hanya dipakai untuk compile. Go toolchain + module cache + source
 # (±350 MB) semuanya dibuang setelah binary jadi.
-FROM golang:1.25-alpine AS build
+FROM golang:1.26-alpine AS build
 
 WORKDIR /src
 

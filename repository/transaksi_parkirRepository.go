@@ -33,7 +33,7 @@ func (repo *transaksiParkirRepository) CreateTransaksiParkir(ctx context.Context
 	}
 
 	querySelect := `
-        SELECT 
+        SELECT
         t.id, t.kode_transaksi, t.jenis_kendaraan, t.tarif, t.saldo_sebelum, t.saldo_sesudah, t.status, t.created_at,
         l.id, l.nama_lokasi, l.alamat, l.is_active,
         u.id, u.name, u.email,
@@ -66,7 +66,7 @@ func (repo *transaksiParkirRepository) CreateTransaksiParkir(ctx context.Context
 
 func (repo *transaksiParkirRepository) GetTransaksiParkirByID(ctx context.Context, id string) (*domain.TransaksiParkir, error) {
 	query := `
-        SELECT t.id, t.kode_transaksi, t.jenis_kendaraan, t.tarif, t.saldo_sebelum, t.saldo_sesudah, t.status, t.created_at,
+        SELECT t.id, t.kode_transaksi, t.jenis_kendaraan, t.tarif, t.saldo_sebelum, t.saldo_sesudah, t.status, t.created_at, t.pengguna_id, t.petugas_id, t.lokasi_id,
         l.id, l.nama_lokasi, l.alamat, l.is_active,
         u.id, u.name, u.email,
         p.id, p.name, p.email
@@ -86,7 +86,7 @@ func (repo *transaksiParkirRepository) GetTransaksiParkirByID(ctx context.Contex
 	}
 
 	err := exec.QueryRowContext(ctx, query, id).Scan(
-		&transaksi.ID, &transaksi.KodeTransaksi, &transaksi.JenisKendaraan, &transaksi.Tarif, &transaksi.SaldoSebelum, &transaksi.SaldoSesudah, &transaksi.Status, &transaksi.CreatedAt,
+		&transaksi.ID, &transaksi.KodeTransaksi, &transaksi.JenisKendaraan, &transaksi.Tarif, &transaksi.SaldoSebelum, &transaksi.SaldoSesudah, &transaksi.Status, &transaksi.CreatedAt, &transaksi.PenggunaID, &transaksi.PetugasID, &transaksi.LokasiID,
 		&transaksi.LokasiParkir.ID, &transaksi.LokasiParkir.NamaLokasi, &transaksi.LokasiParkir.Alamat, &transaksi.LokasiParkir.IsActive,
 		&transaksi.Pengguna.ID, &transaksi.Pengguna.Name, &transaksi.Pengguna.Email,
 		&transaksi.LokasiParkir.Petugas.ID, &transaksi.LokasiParkir.Petugas.Name, &transaksi.LokasiParkir.Petugas.Email,

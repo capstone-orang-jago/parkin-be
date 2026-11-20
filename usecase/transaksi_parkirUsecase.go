@@ -101,8 +101,8 @@ func (usecase *transaksiParkirUsecase) CreateTransaksiParkir(ctx context.Context
 		if qrSession == nil {
 			return fmt.Errorf("%w: invalid QR payload", helpers.ErrInvalidInput)
 		}
-		if qrSession.LokasiID != lokasiID || qrSession.PetugasID != petugasID {
-			return fmt.Errorf("%w: QR payload does not match the active session", helpers.ErrInvalidInput)
+		if qrSession.LokasiParkir == nil || qrSession.LokasiParkir.ID != lokasiID || qrSession.Petugas == nil || qrSession.Petugas.ID != petugasID {
+    	return fmt.Errorf("%w: QR payload does not match the active session", helpers.ErrInvalidInput)
 		}
 		if qrSession.Petugas == nil || qrSession.Petugas.ID != petugasID {
 			return fmt.Errorf("%w: invalid petugas ID in QR payload", helpers.ErrInvalidInput)
